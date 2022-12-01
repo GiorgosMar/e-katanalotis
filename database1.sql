@@ -14,8 +14,7 @@ CREATE TABLE IF NOT EXISTS users(
     user_conf_password VARCHAR(50),
     user_role INT DEFAULT 0,
     score INT DEFAULT 0 NOT NULL,
-    tokens INT DEFAULT 0 NOT NULL,
-    ON DELETE CASCADE ON UPDATE CASCADE
+    tokens INT DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product(
@@ -24,8 +23,7 @@ CREATE TABLE IF NOT EXISTS product(
     category VARCHAR(50),
     photo VARCHAR(100),
     PRIMARY KEY product_id,
-    UNIQUE product_name,
-    ON DELETE CASCADE ON UPDATE CASCADE
+    UNIQUE product_name
 ); 
 
 CREATE TABLE IF NOT EXISTS reaction_history(
@@ -34,7 +32,8 @@ CREATE TABLE IF NOT EXISTS reaction_history(
     react_date DATE,
     type BOOLEAN,
     PRIMARY KEY offer_id,
-    CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES user(user_id)
+    CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES user(user_id),
+    ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
 CREATE TABLE IF NOT EXISTS price_history(
@@ -44,14 +43,14 @@ CREATE TABLE IF NOT EXISTS price_history(
     price_date DATE,
     product INT NOT NULL,
     PRIMARY KEY price_h_id,
-    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES product(product_id)
+    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES product(product_id),
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
 CREATE TABLE IF NOT EXISTS category(
     category_name VARCHAR (50) NOT NULL,
     parent_category VARCHAR(50),
-    PRIMARY KEY category_name
+    PRIMARY KEY category_name,
     CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES category(category_name)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -63,7 +62,7 @@ CREATE TABLE IF NOT EXISTS offer(
     init_price FLOAT(3,2),
     new_price FLOAT(3,2),
     stock BOOLEAN,
-    likes INT ,
+    likes INT,
     dislikes INT,
     entry_date DATE,
     PRIMARY KEY (offer_id),
