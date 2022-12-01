@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users(
 );
 
 CREATE TABLE IF NOT EXISTS product(
-    product_id INT NOT NULL AUTO_INCREMENT
+    product_id INT NOT NULL AUTO_INCREMENT,
     product_name VARCHAR(50),
     category VARCHAR(50),
     photo VARCHAR(100),
