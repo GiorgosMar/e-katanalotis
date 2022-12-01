@@ -1,0 +1,15 @@
+User: user_id, user_name, user_email, user_password, user_conf_password, user_role, score, tokens,
+
+Product: product_name, category, subcategory, photo, ave_day, ave_week
+
+Offer: (offer_id), [product key], [store key], user_id, pre_price, after_price, stock(0/1), likes, dislikes, entry_date, discount_rate
+
+Price_history: price, date
+
+Store: store_name, store_id, store_category, coordinates, address, (opening_hours)
+
+int_history: user_id, offer_id, date, type**************(like or dis)
+
+??????????????????
+category
+subcategory
