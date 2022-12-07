@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS product(
 
 CREATE TABLE IF NOT EXISTS reaction_history(
     offer_id SERIAL PRIMARY KEY,
-    userid INT NOT NULL,
+    userid UUID NOT NULL,
     react_date DATE,
     type BOOLEAN,
     CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES users(user_id)
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS price_history(
     price_h_id SERIAL PRIMARY KEY,
     price NUMERIC(3,2),
     price_date DATE,
-    product INT NOT NULL,
+    productid INT NOT NULL,
     CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES product(product_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
@@ -52,12 +52,24 @@ CREATE TABLE IF NOT EXISTS category(
     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TYPE classification AS ENUM ('super','convenience');
+
+CREATE TABLE IF NOT EXISTS store(
+    store_name VARCHAR(50) NOT NULL,
+    store_id SERIAL,
+    store_category classification ,
+    longtitude NUMERIC(18,15),
+    latitude NUMERIC(17,15),
+    PRIMARY KEY(store_id)
+);
+
+
 CREATE TABLE IF NOT EXISTS offer(
     offer_id SERIAL,
     productID INT NOT NULL,
     storeID INT NOT NULL ,
-    init_price NUMERIC(3,2),
-    new_price NUMERIC(3,2),
+    init_price NUMERIC(5,2),
+    new_price NUMERIC(5,2),
     stock BOOLEAN,
     likes INT,
     dislikes INT,
@@ -67,16 +79,7 @@ CREATE TABLE IF NOT EXISTS offer(
     FOREIGN KEY (storeID) REFERENCES store(store_id)
     ON DELETE CASCADE 
     ON UPDATE CASCADE,
-    FOREIGN KEY (productID) REFERENCES product(product_id)
+	FOREIGN KEY (productID) REFERENCES product(product_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS store(
-    store_name VARCHAR(50) NOT NULL,
-    store_id SERIAL,
-    store_category ENUM('super','convenience'),
-    longtitude NUMERIC(3,15),
-    latitude NUMERIC(2,15),
-    PRIMARY KEY(store_id)
 );
