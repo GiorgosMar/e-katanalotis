@@ -1,7 +1,7 @@
 --Διόρθωσα κάποια πράγματα για να τρέχει στο postgres //niklotios
---CREATE DATABASE webProjectdb;
+CREATE DATABASE webProjectdb;
 
---connect webProjectdb;
+connect webProjectdb;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
