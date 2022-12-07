@@ -1,6 +1,7 @@
-CREATE DATABASE webProjectdb;
+--Διόρθωσα κάποια πράγματα για να τρέχει στο postgres //niklotios
+--CREATE DATABASE webProjectdb;
 
-\connect webProjectdb;
+--connect webProjectdb;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -18,49 +19,45 @@ CREATE TABLE IF NOT EXISTS users(
 );
 
 CREATE TABLE IF NOT EXISTS product(
-    product_id INT NOT NULL AUTO_INCREMENT,
+    product_id SERIAL PRIMARY KEY,
     product_name VARCHAR(50),
     category VARCHAR(50),
     photo VARCHAR(100),
-    PRIMARY KEY product_id,
-    UNIQUE product_name
+    UNIQUE (product_name)
 ); 
 
 CREATE TABLE IF NOT EXISTS reaction_history(
-    offer_id INT NOT NULL AUTO_INCREMENT,
+    offer_id SERIAL PRIMARY KEY,
     userid INT NOT NULL,
     react_date DATE,
     type BOOLEAN,
-    PRIMARY KEY offer_id,
-    CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES user(user_id),
+    CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES users(user_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
 CREATE TABLE IF NOT EXISTS price_history(
     
-    price_h_id INT NOT NULL AUTO_INCREMENT,
-    price FLOAT(3,2),
+    price_h_id SERIAL PRIMARY KEY,
+    price NUMERIC(3,2),
     price_date DATE,
     product INT NOT NULL,
-    PRIMARY KEY price_h_id,
-    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES product(product_id),
+    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES product(product_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
 CREATE TABLE IF NOT EXISTS category(
-    category_name VARCHAR (50) NOT NULL,
+    category_name VARCHAR (50) NOT NULL PRIMARY KEY,
     parent_category VARCHAR(50),
-    PRIMARY KEY category_name,
     CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES category(category_name)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS offer(
-    offer_id INT NOT NULL AUTO_INCREMENT,
-    productID INT NOT NULL
-    storeID INT NOT NULL 
-    init_price FLOAT(3,2),
-    new_price FLOAT(3,2),
+    offer_id SERIAL,
+    productID INT NOT NULL,
+    storeID INT NOT NULL ,
+    init_price NUMERIC(3,2),
+    new_price NUMERIC(3,2),
     stock BOOLEAN,
     likes INT,
     dislikes INT,
@@ -69,7 +66,7 @@ CREATE TABLE IF NOT EXISTS offer(
     CONSTRAINT STRE
     FOREIGN KEY (storeID) REFERENCES store(store_id)
     ON DELETE CASCADE 
-    ON UPDATE CASCADE
+    ON UPDATE CASCADE,
     FOREIGN KEY (productID) REFERENCES product(product_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
@@ -77,9 +74,9 @@ CREATE TABLE IF NOT EXISTS offer(
 
 CREATE TABLE IF NOT EXISTS store(
     store_name VARCHAR(50) NOT NULL,
-    store_id INT NOT NULL AUTO INCREMENT,
+    store_id SERIAL,
     store_category ENUM('super','convenience'),
-    longtitude FLOAT(3,15),
-    latitude FLOAT(2,15),
+    longtitude NUMERIC(3,15),
+    latitude NUMERIC(2,15),
     PRIMARY KEY(store_id)
 );
