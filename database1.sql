@@ -1,7 +1,7 @@
 --Διόρθωσα κάποια πράγματα για να τρέχει στο postgres //niklotios
 CREATE DATABASE webProjectdb;
 
-connect webProjectdb;
+--connect webProjectdb;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -18,12 +18,13 @@ CREATE TABLE IF NOT EXISTS users(
     tokens INT DEFAULT 0 NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS product(
-    product_id SERIAL PRIMARY KEY,
-    product_name VARCHAR(50),
+CREATE TABLE IF NOT EXISTS products(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
     category VARCHAR(50),
+    subcategory	VARCHAR(50),
     photo VARCHAR(100),
-    UNIQUE (product_name)
+    UNIQUE (name)
 ); 
 
 CREATE TABLE IF NOT EXISTS reaction_history(
@@ -41,7 +42,7 @@ CREATE TABLE IF NOT EXISTS price_history(
     price NUMERIC(3,2),
     price_date DATE,
     productid INT NOT NULL,
-    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES product(product_id)
+    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES products(id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
@@ -79,7 +80,7 @@ CREATE TABLE IF NOT EXISTS offer(
     FOREIGN KEY (storeID) REFERENCES store(store_id)
     ON DELETE CASCADE 
     ON UPDATE CASCADE,
-	FOREIGN KEY (productID) REFERENCES product(product_id)
+	FOREIGN KEY (productID) REFERENCES products(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
