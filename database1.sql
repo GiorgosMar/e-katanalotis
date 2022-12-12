@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS products(
     id SERIAL PRIMARY KEY,
     name VARCHAR(50),
     category VARCHAR(50),
-    subcategory	VARCHAR(50),
+    subcategory	 VARCHAR(50),
     photo VARCHAR(100),
     UNIQUE (name)
 ); 
