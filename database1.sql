@@ -27,15 +27,7 @@ CREATE TABLE IF NOT EXISTS reaction_history(
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
-CREATE TABLE IF NOT EXISTS price_history(
-    
-    price_h_id SERIAL PRIMARY KEY,
-    price NUMERIC(3,2),
-    price_date DATE,
-    productid INT NOT NULL,
-    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES products(id)
-    ON DELETE CASCADE ON UPDATE CASCADE
-); 
+
 
 CREATE TABLE IF NOT EXISTS categories(
     category_id VARCHAR (50) NOT NULL PRIMARY KEY,
@@ -63,6 +55,16 @@ CREATE TABLE IF NOT EXISTS products(
     ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT C8 FOREIGN KEY (subcategory) REFERENCES subcategories(subcategory_id)
     ON DELETE CASCADE ON UPDATE CASCADE	
+);
+
+CREATE TABLE IF NOT EXISTS price_history(
+    
+    price_h_id SERIAL PRIMARY KEY,
+    price NUMERIC(3,2),
+    price_date DATE,
+    productid INT NOT NULL,
+    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES products(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TYPE classification AS ENUM ('super','convenience');
