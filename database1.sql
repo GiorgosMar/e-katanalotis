@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS reaction_history(
 
 CREATE TABLE IF NOT EXISTS categories(
     category_id VARCHAR (50) NOT NULL PRIMARY KEY,
-    category_name VARCHAR (50) NOT NULL
+    category_name VARCHAR (50) NOT NULL,
+    UNIQUE (category_name)
 );
 
 
