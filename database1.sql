@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS products(
     subcategory	 VARCHAR(50),
     photo VARCHAR(100),
     UNIQUE (name)
-    CONSTRAINT C7 FOREIGN KEY (category) REFERENCES category(category_id)
+    CONSTRAINT C7 FOREIGN KEY (category) REFERENCES categories(category_id)
     ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT C8 FOREIGN KEY (subcategory) REFERENCES subcategory(subcategory_id)
+    CONSTRAINT C8 FOREIGN KEY (subcategory) REFERENCES subcategories(subcategory_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 	
 ); 
@@ -51,16 +51,16 @@ CREATE TABLE IF NOT EXISTS price_history(
     ON DELETE CASCADE ON UPDATE CASCADE
 ); 
 
-CREATE TABLE IF NOT EXISTS category(
+CREATE TABLE IF NOT EXISTS categories(
     category_id VARCHAR (50) NOT NULL PRIMARY KEY,
     category_name VARCHAR (50) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS subcategory(
+CREATE TABLE IF NOT EXISTS subcategories(
     subcategory_name VARCHAR (50) NOT NULL,
     subcategory_id VARCHAR (50) NOT NULL PRIMARY KEY,
     parent_category VARCHAR(50),
-    CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES category(category_id)
+    CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES categories(category_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
