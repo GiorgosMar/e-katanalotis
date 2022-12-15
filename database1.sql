@@ -21,10 +21,15 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS products(
     id SERIAL PRIMARY KEY,
     name VARCHAR(50),
-    category VARCHAR(50),
+    category VARCHAR(50) ,
     subcategory	 VARCHAR(50),
     photo VARCHAR(100),
     UNIQUE (name)
+    CONSTRAINT C7 FOREIGN KEY (category) REFERENCES category(category_id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT C8 FOREIGN KEY (subcategory) REFERENCES subcategory(subcategory_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+	
 ); 
 
 CREATE TABLE IF NOT EXISTS reaction_history(
@@ -47,9 +52,15 @@ CREATE TABLE IF NOT EXISTS price_history(
 ); 
 
 CREATE TABLE IF NOT EXISTS category(
-    category_name VARCHAR (50) NOT NULL PRIMARY KEY,
+    category_id VARCHAR (50) NOT NULL PRIMARY KEY,
+    category_name VARCHAR (50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS subcategory(
+    subcategory_name VARCHAR (50) NOT NULL,
+    subcategory_id VARCHAR (50) NOT NULL PRIMARY KEY,
     parent_category VARCHAR(50),
-    CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES category(category_name)
+    CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES category(category_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
