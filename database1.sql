@@ -70,14 +70,14 @@ CREATE TABLE IF NOT EXISTS price_history(
 
 CREATE TYPE classification AS ENUM ('super','convenience');
 
-CREATE TABLE IF NOT EXISTS store(
-    store_name VARCHAR(50) NOT NULL,
-    store_id SERIAL,
-    store_category classification ,
-    longtitude NUMERIC(18,15),
-    latitude NUMERIC(17,15),
-    PRIMARY KEY(store_id)
+CREATE TABLE IF NOT EXISTS store (
+    id serial PRIMARY KEY,
+    osm_id text NOT NULL,
+    name text NOT NULL,
+    shop text NOT NULL,
+    location geometry NOT NULL
 );
+
 
 
 CREATE TABLE IF NOT EXISTS offer(
