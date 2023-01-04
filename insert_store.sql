@@ -1,4 +1,4 @@
-CREATE TABLE store (
+CREATE TABLE IF  NOT EXISTS store (
     id serial PRIMARY KEY,
     osm_id text NOT NULL,
     name text ,
