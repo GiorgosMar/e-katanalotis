@@ -2,7 +2,7 @@ CREATE TABLE store (
     id serial PRIMARY KEY,
     osm_id text NOT NULL,
     name text ,
-    shop text NOT NULL,
+    shop text ,
     location geometry NOT NULL
 );
 
