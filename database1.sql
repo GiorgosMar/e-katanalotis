@@ -4,7 +4,7 @@ CREATE DATABASE webProjectdb;
 --connect webProjectdb;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
+CREATE EXTENSION postgis WITH SCHEMA public;
 
 
 CREATE TABLE IF NOT EXISTS users(
@@ -21,13 +21,6 @@ CREATE TABLE IF NOT EXISTS users(
 ); 
 
 
-CREATE TABLE store (
-  id serial PRIMARY KEY,
-  osm_id text NOT NULL ,
-  name text  ,
-  shop text  ,
-  location geometry NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS reaction_history(
     offer_id SERIAL PRIMARY KEY,
@@ -79,13 +72,13 @@ CREATE TABLE IF NOT EXISTS price_history(
     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TYPE classification AS ENUM ('super','convenience');
+
 
 CREATE TABLE IF NOT EXISTS store (
     id serial PRIMARY KEY,
     osm_id text NOT NULL,
-    name text NOT NULL,
-    shop text NOT NULL,
+    name text ,
+    shop text ,
     location geometry NOT NULL
 );
 
@@ -103,7 +96,7 @@ CREATE TABLE IF NOT EXISTS offer(
     entry_date DATE,
     PRIMARY KEY (offer_id),
     CONSTRAINT STRE
-    FOREIGN KEY (storeID) REFERENCES store(store_id)
+    FOREIGN KEY (storeID) REFERENCES store(id)
     ON DELETE CASCADE 
     ON UPDATE CASCADE,
 	FOREIGN KEY (productID) REFERENCES products(id)
