@@ -5,6 +5,8 @@ CREATE DATABASE webProjectdb;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+
+
 CREATE TABLE IF NOT EXISTS users(
     user_id UUID DEFAULT
     uuid_generate_v4()
@@ -17,6 +19,15 @@ CREATE TABLE IF NOT EXISTS users(
     score INT DEFAULT 0 NOT NULL,
     tokens INT DEFAULT 0 NOT NULL
 ); 
+
+
+CREATE TABLE store (
+  id serial PRIMARY KEY,
+  osm_id text NOT NULL ,
+  name text  ,
+  shop text  ,
+  location geometry NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS reaction_history(
     offer_id SERIAL PRIMARY KEY,
