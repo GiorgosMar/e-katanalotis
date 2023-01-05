@@ -1,6 +1,5 @@
 import "./App.css";
-import React, { Fragment, useState } from "react";
-import { Container, ThemeProvider } from "@mui/material";
+import React, { Fragment, useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -14,96 +13,89 @@ import DashboardAdmin from "./components/DashboardAdmin";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import { UserContext } from "./components/UserContext";
-import theme from "./components/Theme";
-import { Box } from "@material-ui/core";
 
 function App() {
   //useStates
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState(null);
 
+
   return (
     <Fragment>
       <Router>
-        <Container fixed>
-          <UserContext.Provider
-            value={{ isAuthenticated, setIsAuthenticated, role, setRole }}
-          >
-            <ThemeProvider theme={theme}>
-              <Box>
-                <Routes>
-                  <Route
-                    index
-                    path="/"
-                    element={
-                      !isAuthenticated ? (
-                        <Navigate to="/login" />
-                      ) : isAuthenticated && role === 1 ? (
-                        <Navigate to="/dashboardAdmin" />
-                      ) : isAuthenticated && role === 0 ? (
-                        <Navigate to="/dashboardUser" />
-                      ) : (
-                        <Navigate to="/login" />
-                      )
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/login"
-                    element={
-                      !isAuthenticated ? (
-                        <Login />
-                      ) : isAuthenticated && role === 1 ? (
-                        <Navigate to="/dashboardAdmin" />
-                      ) : isAuthenticated && role === 0 ? (
-                        <Navigate to="/dashboardUser" />
-                      ) : (
-                        <Navigate to="/login" />
-                      )
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/register"
-                    element={
-                      !isAuthenticated ? <Register /> : <Navigate to="/login" />
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/dashboardUser"
-                    element={
-                      !isAuthenticated ? (
-                        <Navigate to="/login" />
-                      ) : isAuthenticated && role === 1 ? (
-                        <Navigate to="/dashboardAdmin" />
-                      ) : isAuthenticated && role === 0 ? (
-                        <DashboardUser />
-                      ) : (
-                        <Navigate to="/login" />
-                      )
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/dashboardAdmin"
-                    element={
-                      !isAuthenticated ? (
-                        <Navigate to="/login" />
-                      ) : isAuthenticated && role === 1 ? (
-                        <DashboardAdmin />
-                      ) : isAuthenticated && role === 0 ? (
-                        <Navigate to="/dashboardUser" />
-                      ) : (
-                        <Navigate to="/login" />
-                      )
-                    }
-                  />
-                </Routes>
-              </Box>
-            </ThemeProvider>
-          </UserContext.Provider>
-        </Container>
+        <UserContext.Provider
+          value={{ isAuthenticated, setIsAuthenticated, role, setRole }}
+        >
+          <Routes>
+            <Route
+              index
+              path="/"
+              element={
+                !isAuthenticated ? (
+                  <Navigate to="/login" />
+                ) : isAuthenticated && role === 1 ? (
+                  <Navigate to="/dashboardAdmin" />
+                ) : isAuthenticated && role === 0 ? (
+                  <Navigate to="/dashboardUser" />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              exact
+              path="/login"
+              element={
+                !isAuthenticated ? (
+                  <Login />
+                ) : isAuthenticated && role === 1 ? (
+                  <Navigate to="/dashboardAdmin" />
+                ) : isAuthenticated && role === 0 ? (
+                  <Navigate to="/dashboardUser" />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              exact
+              path="/register"
+              element={
+                !isAuthenticated ? <Register /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              exact
+              path="/dashboardUser"
+              element={
+                !isAuthenticated ? (
+                  <Navigate to="/login" />
+                ) : isAuthenticated && role === 1 ? (
+                  <Navigate to="/dashboardAdmin" />
+                ) : isAuthenticated && role === 0 ? (
+                  <DashboardUser />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              exact
+              path="/dashboardAdmin"
+              element={
+                !isAuthenticated ? (
+                  <Navigate to="/login" />
+                ) : isAuthenticated && role === 1 ? (
+                  <DashboardAdmin />
+                ) : isAuthenticated && role === 0 ? (
+                  <Navigate to="/dashboardUser" />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+          </Routes>
+        </UserContext.Provider>
       </Router>
     </Fragment>
   );
