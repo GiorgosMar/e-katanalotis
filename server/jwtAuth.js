@@ -52,7 +52,9 @@ router.post("/login", validInfo, async (req, res) => {
     }
 
     const token = jwtGenerator(user.rows[0].user_id);
-    return res.json({ token });
+    const user_credentials = user.rows[0];
+
+    return res.json({ token, user_credentials });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
@@ -61,7 +63,8 @@ router.post("/login", validInfo, async (req, res) => {
 
 router.post("/verify", authorize, (req, res) => {
   try {
-    res.status(200).send('Empty Body');
+    res.json(true);
+    //res.status(200).send('Empty Body');
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
