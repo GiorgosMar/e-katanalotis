@@ -38,30 +38,27 @@ async function refundTokens(numUsers) {
   }
   
 
-async function tool(b){
-     b = await countUsers();
-}
+async function tool(){
+    // Get number of users
+  const numUsers = await countUsers();
+  refundTokens(numUsers);
+    }
+tool();
 
 
-let a;
-// Uncomment this line to manually trigger the user count
-tool(a);
-console.log(a);
-//console.log(a);
 // Get current date
 const currentDate = new Date();
-const tokensToRefund = 0.8 * a * 100;
-console.log(tokensToRefund);
+
 // Check if it's the first of the month
 //if (currentDate.getDate() === 1) {
   //numUsers = await countUsers();
 //}
 
-// Uncomment this line to manually trigger the token refund
-refundTokens(a);
+
 
 // Check if it's the last day of the month
 //if (currentDate.getDate() === new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()) {
   //refundTokens(numUsers);
 //}
+
 
