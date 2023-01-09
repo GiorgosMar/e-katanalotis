@@ -10,30 +10,49 @@ app.use(express.json());
 
 //ROUTES
 
-//GET ALL
+app.get("/products", async (req, res) => {
+  try {
+    const offerProducts = await pool.query(
+      "SELECT * FROM products INNER JOIN offer ON products.product_id = offer.productID INNER JOIN store ON offer.storeID = store.id;"
+    );
+    res.json(offerProducts.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//GET ALL Stores
 app.get("/store", async (req, res) => {
   try {
     const { search_value } = req.query;
 
     if (search_value !== undefined) {
       const storeName = await pool.query(
-        "SELECT * FROM store WHERE store_name=$1",
+        "SELECT *, ST_X(location) AS longitude, ST_Y(location) AS latitude FROM store LEFT JOIN offer ON store.id = offer.storeID WHERE name=$1;",
         [search_value]
       );
       const storeCategory = await pool.query(
-        "SELECT * FROM store WHERE store_description=$1",
+        "SELECT *, ST_X(location) AS longitude, ST_Y(location) AS latitude from categories inner join products on categories.category_id=products.category inner join offer on products.product_id=offer.productid INNER JOIN store ON offer.storeID = store.id WHERE category_name=$1",
         [search_value]
       );
 
-      if (storeName.rows[0] === undefined && storeCategory.rows[0] !== undefined ) {
-        res.json(storeCategory.rows);
-      } else if (storeName.rows[0] !== undefined && storeCategory.rows[0] === undefined) {
+      if (
+        storeName.rows[0] !== undefined &&
+        storeCategory.rows[0] === undefined
+      ) {
         res.json(storeName.rows);
-      }else{
+      } else if (
+        storeName.rows[0] === undefined &&
+        storeCategory.rows[0] !== undefined
+      ) {
+        res.json(storeCategory.rows);
+      } else {
         res.json("Not found");
       }
     } else {
-      const allStores = await pool.query("SELECT * FROM store");
+      const allStores = await pool.query(
+        "SELECT *, ST_X(location) AS longitude, ST_Y(location) AS latitude FROM store LEFT JOIN offer ON store.id = offer.storeID;"
+      );
       res.json(allStores.rows);
     }
   } catch (err) {
