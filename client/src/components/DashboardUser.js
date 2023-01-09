@@ -1,26 +1,25 @@
 import React, { Fragment, useContext, useState, useEffect } from "react";
 import { UserContext } from "./UserContext";
-import { Button } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import SearchIcon from "@mui/icons-material/Search";
 import InputBase from "@mui/material/InputBase";
-import { useNavigate } from "react-router-dom";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
-import icon from "./constants";
+import icon, { redMrkr, greenMrkr } from "./constants";
 import "leaflet/dist/leaflet.css";
 import Navbar from "./Navbar";
 import UserLocation from "./UserLocation";
 import { Container } from "@mui/system";
-import SearchBar from "./SearchBar";
 import Alert from "@mui/material/Alert";
+import { UNSAFE_NavigationContext } from "react-router-dom";
 
 const DashboardUser = () => {
   //useState
   const { setIsAuthenticated } = useContext(UserContext);
   const [stores, setStores] = useState([]);
+  const [offerProducts, setOfferProducts] = useState([]);
   const [searchValue, setSearchValue] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -30,6 +29,16 @@ const DashboardUser = () => {
       const getAllStrs = await response.json();
 
       setStores(getAllStrs);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const getOfferProducts = async (id) => {
+    try {
+      const response = await fetch("http://localhost:5000/products");
+      const getOfferProducts = await response.json();
+      setOfferProducts(getOfferProducts);
     } catch (err) {
       console.error(err.message);
     }
@@ -46,9 +55,8 @@ const DashboardUser = () => {
       if (returnStores === "Not found") {
         setErrorMessage("Η τοποθεσία δεν βρέθηκε!");
       } else {
-        console.log(returnStores);
         setStores(returnStores);
-        setErrorMessage(null)
+        setErrorMessage(null);
       }
     } catch (err) {
       setErrorMessage("Κάτι πήγε στραβά!");
@@ -58,9 +66,14 @@ const DashboardUser = () => {
   //useEffect//
   useEffect(() => {
     getAllStores();
+    getOfferProducts();
   }, []);
 
-  console.log(stores);
+  //format date //
+  const getFormattedDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB');
+}
 
   return (
     <Fragment>
@@ -113,16 +126,52 @@ const DashboardUser = () => {
           />
           <UserLocation />
           {stores &&
-            stores?.map((store) => (
-              <Marker
-                key={store.store_id}
-                position={[
-                  parseFloat(store.store_lat),
-                  parseFloat(store.store_lon),
-                ]}
-                icon={icon}
-              />
-            ))}
+            stores.map((store) =>
+              store.offer_id !== null ? (
+                <Marker
+                  key={store.store_id}
+                  position={[
+                    parseFloat(store.latitude),
+                    parseFloat(store.longitude),
+                  ]}
+                  icon={greenMrkr}
+                >
+                  <Popup maxWidth="650">
+                    <b>{store.name}</b> <br />
+                    <br />
+                    <b>ΠΡΟΣΦΟΡΕΣ</b> <br />
+                    {offerProducts &&
+                      offerProducts.map(
+                        (indexProduct) =>
+                          store.id === indexProduct.id && (
+                            <p>
+                              {indexProduct.product_name} {" Από "}
+                              {indexProduct.init_price} {"€ Μόνο "}
+                              {indexProduct.new_price} {"€ Ημερομηνία κατ: "}
+                              {getFormattedDate(indexProduct.entry_date)} {", Likes "}
+                              {indexProduct.likes} {", Dislikes "}
+                              {indexProduct.dislikes} {", Σε απόθεμα: "}
+                              {indexProduct.stock === true ? "ΝΑΙ" : "OXI"}<br/>
+                            </p>
+                          )
+                      )}
+                  </Popup>
+                </Marker>
+              ) : (
+                <Marker
+                  key={store.store_id}
+                  position={[
+                    parseFloat(store.latitude),
+                    parseFloat(store.longitude),
+                  ]}
+                  icon={redMrkr}
+                >
+                  <Popup>
+                    <b>{store.name}</b> <br />
+                  </Popup>
+                </Marker>
+              )
+            )}
         </MapContainer>
 
         <Grid container justifyContent="flex-end">
