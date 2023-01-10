@@ -23,42 +23,45 @@ async function countUsers() {
   
 
 
-async function refundTokens(numUsers) {
-    //console.log(numUsers);
-    // Calculate number of tokens to refund (80% of tokens)
-    const tokensToRefund = 0.8 * numUsers * 100;
-    //console.log(tokensToRefund);
-    // Refund tokens to all users
-    const query = `UPDATE users SET tokens = tokens + $1`;
+async function refundTokens(tokensToRefund,numUsers) {
+    
     if (numUsers !== 0 && !isNaN(tokensToRefund)) {
-       const value = Math.round(tokensToRefund / numUsers);
-       console.log(value);
-        await pool.query(query, [value]);    
+      // Calculate amount of tokens to give to each user
+     const tokensPerUser = Math.round(tokensToRefund / numUsers);
+    
+      // Update tokens for all users
+      const query = `UPDATE users SET tokens = tokens + $1`;
+      await pool.query(query, [tokensPerUser]);
     }
   }
   
 
 async function tool(){
-    // Get number of users
+
+   /* // Get number of users
   const numUsers = await countUsers();
-  refundTokens(numUsers);
-    }
-tool();
+  refundTokens(numUsers);*/
 
 
 // Get current date
 const currentDate = new Date();
 
 // Check if it's the first of the month
-//if (currentDate.getDate() === 1) {
-  //numUsers = await countUsers();
-//}
-
-
+if (currentDate.getDate() === 1) {
+  const numUsers = await countUsers();
+  // Calculate number of tokens to refund (80% of tokens)
+  const tokensToRefund = 0.8 * numUsers * 100;
+  // Store number of tokens to refund
+  localStorage.setItem('tokensToRefund', tokensToRefund);
+}
 
 // Check if it's the last day of the month
-//if (currentDate.getDate() === new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()) {
-  //refundTokens(numUsers);
-//}
-
-
+if (currentDate.getDate() === new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()) {
+  // Get number of tokens to refund from local storage
+  const tokensToRefund = localStorage.getItem('tokensToRefund');
+  // Get number of users
+  const numUsers = await countUsers();
+  refundTokens(tokensToRefund, numUsers);
+}
+    }
+tool();
