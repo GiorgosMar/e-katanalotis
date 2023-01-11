@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useState, useEffect } from "react";
-import { UserContext } from "./UserContext";
+import { UserCircleBounds, UserContext, UserPosition } from "./UserContext";
 import Grid from "@mui/material/Grid";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -7,13 +7,12 @@ import SearchIcon from "@mui/icons-material/Search";
 import InputBase from "@mui/material/InputBase";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
-import icon, { redMrkr, greenMrkr } from "./constants";
+import { redMrkr, greenMrkr } from "./constants";
 import "leaflet/dist/leaflet.css";
 import Navbar from "./Navbar";
-import UserLocation from "./UserLocation";
 import { Container } from "@mui/system";
 import Alert from "@mui/material/Alert";
-import { UNSAFE_NavigationContext } from "react-router-dom";
+import UserLocation from "./UserLocation";
 
 const DashboardUser = () => {
   //useState
@@ -22,6 +21,8 @@ const DashboardUser = () => {
   const [offerProducts, setOfferProducts] = useState([]);
   const [searchValue, setSearchValue] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState(null);
 
   const getAllStores = async () => {
     try {
@@ -43,6 +44,26 @@ const DashboardUser = () => {
       console.error(err.message);
     }
   };
+
+  /*const getRadius = async (lat, lon) => {
+    if (await circleBounds.contains([parseFloat(lat), parseFloat(lon)])) {
+      return <b>ΝΑΙ</b> && console.log(circleBounds);
+    } else {
+      return <b>ΟΧΙ</b> && console.log(circleBounds);
+    }
+  };*/
+
+  const getdistance = (lat1, lon1, lat2, lon2) => {
+    var R = 6378.137; // Radius of earth in KM
+    var dLat = lat2 * Math.PI / 180 - lat1 * Math.PI / 180;
+    var dLon = lon2 * Math.PI / 180 - lon1 * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+    return d * 1000;
+  }
 
   const onSubmitSearchValue = async (e) => {
     e.preventDefault();
@@ -72,8 +93,8 @@ const DashboardUser = () => {
   //format date //
   const getFormattedDate = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB');
-}
+    return date.toLocaleDateString("en-GB");
+  };
 
   return (
     <Fragment>
@@ -124,7 +145,15 @@ const DashboardUser = () => {
             attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <UserLocation />
+          <UserPosition.Provider
+            value={{
+              position,
+              setPosition
+            }}
+          >
+            <UserLocation />
+          </UserPosition.Provider>
+
           {stores &&
             stores.map((store) =>
               store.offer_id !== null ? (
@@ -148,10 +177,12 @@ const DashboardUser = () => {
                               {indexProduct.product_name} {" Από "}
                               {indexProduct.init_price} {"€ Μόνο "}
                               {indexProduct.new_price} {"€ Ημερομηνία κατ: "}
-                              {getFormattedDate(indexProduct.entry_date)} {", Likes "}
+                              {getFormattedDate(indexProduct.entry_date)}{" "}
+                              {", Likes "}
                               {indexProduct.likes} {", Dislikes "}
                               {indexProduct.dislikes} {", Σε απόθεμα: "}
-                              {indexProduct.stock === true ? "ΝΑΙ" : "OXI"}<br/>
+                              {indexProduct.stock === true ? "ΝΑΙ" : "OXI"}
+                              <br />
                             </p>
                           )
                       )}
@@ -168,6 +199,7 @@ const DashboardUser = () => {
                 >
                   <Popup>
                     <b>{store.name}</b> <br />
+                    {getdistance(position.lat, position.lng, store.latitude, store.longitude) < 500 ? <b>ΝΑΙ</b> : <b>ΟΧΙ</b>}
                   </Popup>
                 </Marker>
               )
