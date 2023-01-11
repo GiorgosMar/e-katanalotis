@@ -62,16 +62,13 @@ CREATE TABLE IF NOT EXISTS products(
     ON DELETE CASCADE ON UPDATE CASCADE	
 );
 
-CREATE TABLE IF NOT EXISTS price_history(
-    
-    price_h_id SERIAL PRIMARY KEY,
-    price NUMERIC(3,2),
-    price_date DATE,
-    productid INT NOT NULL,
-    CONSTRAINT C2 FOREIGN KEY (productid) REFERENCES products(id)
-    ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS price_history (
+    price_id SERIAL PRIMARY KEY,
+    price_log_id INTEGER REFERENCES products(id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+    date DATE,
+    price NUMERIC
 );
-
 
 
 CREATE TABLE IF NOT EXISTS store (
