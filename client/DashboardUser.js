@@ -1,3 +1,4 @@
+
 import React, { Fragment, useContext, useState, useEffect } from "react";
 import { UserContext } from "./UserContext";
 import Grid from "@mui/material/Grid";
@@ -23,6 +24,18 @@ const DashboardUser = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [open, setOpen] = useState(false);
   
+  const getdistance = (lat1, lon1, lat2, lon2) => {
+    var R = 6378.137; // Radius of earth in KM
+    var dLat = lat2 * Math.PI / 180 - lat1 * Math.PI / 180;
+    var dLon = lon2 * Math.PI / 180 - lon1 * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+    return d * 1000;
+  }
+
 
   const getAllStores = async () => {
     try {
@@ -46,7 +59,7 @@ const DashboardUser = () => {
   };
 
   let circleBounds;
-
+/*
   const getRadius = (lat, lon) => {
     if (circleBounds.contains([
       parseFloat(lat),
@@ -57,6 +70,7 @@ const DashboardUser = () => {
       setOpen(false);
     }
   };
+  */
 
   const onSubmitSearchValue = async (e) => {
     e.preventDefault();
@@ -185,9 +199,9 @@ const DashboardUser = () => {
                   ]}
                   icon={redMrkr}
                 >
-                  <Popup onClick={getRadius(store.latitude, store.longitude)} >
+                  <Popup>
                     <b>{store.name}</b> <br />
-                    {open === true ? <b>ΝΑΙ</b> : <b>ΟΧΙ</b>}
+                    {getdistance(38.250587, 21.737234, store.latitude, store.longitude) < 500 ? <b>ΝΑΙ</b> : <b>ΟΧΙ</b>}
                   </Popup>
                 </Marker>
               )
