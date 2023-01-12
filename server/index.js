@@ -60,6 +60,48 @@ app.get("/store", async (req, res) => {
   }
 });
 
+app.put("/offerlike", async (req, res) => {
+  try {
+    const { updatedlikes } = req.query;
+    const { offerid } = req.query;
+    const likeoffer = await pool.query(
+      "UPDATE offer SET likes = $1 WHERE offer_id = $2;",
+      [updatedlikes, offerid]
+    );
+     res.json(likeoffer.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+app.put("/offerdislike", async (req, res) => {
+  try {
+    const { updateddislikes } = req.query;
+    const { offerid } = req.query;
+    const dislikeoffer = await pool.query(
+      "UPDATE offer SET dislikes = $1 WHERE offer_id = $2;",
+      [updateddislikes, offerid]
+    );
+    res.json(dislikeoffer.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+app.put("/offerscore", async (req, res) => {
+  try {
+    //const { score } = req.query;
+    const { userid } = req.query;
+    const updatescore = await pool.query(
+      "UPDATE users SET score = score + 1 WHERE user_id = $1;",
+      [userid]
+    );
+    res.json(updatescore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 //REGISTER & LOGIN
 app.use("/auth", require("./jwtAuth"));
 
