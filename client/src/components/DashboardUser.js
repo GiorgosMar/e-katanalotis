@@ -1,5 +1,10 @@
 import React, { Fragment, useContext, useState, useEffect } from "react";
-import { UserCircleBounds, UserContext, UserPosition } from "./UserContext";
+import {
+  OfferProducts,
+  OpenDialog,
+  UserContext,
+  UserPosition,
+} from "./UserContext";
 import Grid from "@mui/material/Grid";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -13,6 +18,7 @@ import Navbar from "./Navbar";
 import { Container } from "@mui/system";
 import Alert from "@mui/material/Alert";
 import UserLocation from "./UserLocation";
+import Rating from "./Rating";
 
 const DashboardUser = () => {
   //useState
@@ -35,7 +41,7 @@ const DashboardUser = () => {
     }
   };
 
-  const getOfferProducts = async (id) => {
+  const getOfferProducts = async () => {
     try {
       const response = await fetch("http://localhost:5000/products");
       const getOfferProducts = await response.json();
@@ -45,25 +51,20 @@ const DashboardUser = () => {
     }
   };
 
-  /*const getRadius = async (lat, lon) => {
-    if (await circleBounds.contains([parseFloat(lat), parseFloat(lon)])) {
-      return <b>ΝΑΙ</b> && console.log(circleBounds);
-    } else {
-      return <b>ΟΧΙ</b> && console.log(circleBounds);
-    }
-  };*/
-
   const getdistance = (lat1, lon1, lat2, lon2) => {
     var R = 6378.137; // Radius of earth in KM
-    var dLat = lat2 * Math.PI / 180 - lat1 * Math.PI / 180;
-    var dLon = lon2 * Math.PI / 180 - lon1 * Math.PI / 180;
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var dLat = (lat2 * Math.PI) / 180 - (lat1 * Math.PI) / 180;
+    var dLon = (lon2 * Math.PI) / 180 - (lon1 * Math.PI) / 180;
+    var a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;
     return d * 1000;
-  }
+  };
 
   const onSubmitSearchValue = async (e) => {
     e.preventDefault();
@@ -148,7 +149,7 @@ const DashboardUser = () => {
           <UserPosition.Provider
             value={{
               position,
-              setPosition
+              setPosition,
             }}
           >
             <UserLocation />
@@ -186,6 +187,30 @@ const DashboardUser = () => {
                             </p>
                           )
                       )}
+                    {position === null ? null : getdistance(
+                        position.lat,
+                        position.lng,
+                        store.latitude,
+                        store.longitude
+                      ) < 10000 ? (
+                        <OfferProducts.Provider
+                        value={{
+                          offerProducts,
+                          setOfferProducts,
+                        }}
+                      >
+                        <OpenDialog.Provider
+                          value={{
+                            open,
+                            setOpen,
+                          }}
+                        >
+                          <Rating store={store} />
+                        </OpenDialog.Provider>
+                      </OfferProducts.Provider>
+                    ) : (
+                      <b>ΟΧΙ</b>
+                    )}
                   </Popup>
                 </Marker>
               ) : (
@@ -199,18 +224,35 @@ const DashboardUser = () => {
                 >
                   <Popup>
                     <b>{store.name}</b> <br />
-                    {getdistance(position.lat, position.lng, store.latitude, store.longitude) < 500 ? <b>ΝΑΙ</b> : <b>ΟΧΙ</b>}
+                    {position === null ? null : getdistance(
+                        position.lat,
+                        position.lng,
+                        store.latitude,
+                        store.longitude
+                      ) < 10000 ? (
+                      <OfferProducts.Provider
+                        value={{
+                          offerProducts,
+                          setOfferProducts,
+                        }}
+                      >
+                        <OpenDialog.Provider
+                          value={{
+                            open,
+                            setOpen,
+                          }}
+                        >
+                          <Rating store={store} />
+                        </OpenDialog.Provider>
+                      </OfferProducts.Provider>
+                    ) : (
+                      <b>ΟΧΙ</b>
+                    )}
                   </Popup>
                 </Marker>
               )
             )}
         </MapContainer>
-
-        <Grid container justifyContent="flex-end">
-          {/*<Button variant="contained" onClick={() => setIsAuthenticated(false)}>
-            Logout
-          </Button>*/}
-        </Grid>
       </Container>
     </Fragment>
   );

@@ -1,13 +1,25 @@
-import * as React from "react";
+import React, { useContext } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import SearchBar from "./SearchBar";
+import { UserContext } from "./UserContext";
 
 export default function ButtonAppBar() {
+  //useContext
+  const { setIsAuthenticated } = useContext(UserContext);
+
+  const logout = async e => {
+    e.preventDefault();
+    try {
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
   return (
     <Box sx={{ flexGrow: 1, pb: 1 }}>
       <AppBar position="static" sx={{ backgroundColor: "#472183", py: 1 }}>
@@ -78,6 +90,7 @@ export default function ButtonAppBar() {
                 },
               },
             ]}
+            onClick={e => logout(e)}
           >
             Αποσύνδεση
           </Typography>

@@ -14,7 +14,7 @@ const UserLocation = () => {
     map.locate().on("locationfound", function (e) {
       setPosition(e.latlng);
       map.flyTo(e.latlng, map.getZoom());
-      const radius = 500;
+      const radius = 1000;
       const circle = L.circle(e.latlng, radius);
       circle.addTo(map);
     });
