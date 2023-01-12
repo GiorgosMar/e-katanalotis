@@ -19,12 +19,42 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState(null);
 
+  const checkAuthenticated = async () => {
+    try {
+      const resAuth = await fetch("http://localhost:5000/auth/verify", {
+        method: "POST",
+        headers: { token: localStorage.token },
+      });
+
+      const checkAuthenticated = await resAuth.json();
+
+      if (checkAuthenticated.auth === true) {
+        setIsAuthenticated(true);
+        setRole(checkAuthenticated.user_credentials);
+      } else {
+        setIsAuthenticated(false);
+        setRole(checkAuthenticated.user_credentials);
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  //useEffects
+  useEffect(() => {
+    checkAuthenticated();
+  });
 
   return (
     <Fragment>
       <Router>
         <UserContext.Provider
-          value={{ isAuthenticated, setIsAuthenticated, role, setRole }}
+          value={{
+            isAuthenticated,
+            setIsAuthenticated,
+            role,
+            setRole,
+          }}
         >
           <Routes>
             <Route
