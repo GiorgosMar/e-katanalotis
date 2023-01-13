@@ -60,6 +60,47 @@ app.get("/store", async (req, res) => {
   }
 });
 
+
+//This gets the new price, productID and userid from the latest offer and checks if the new offer is a deal to give 50 points to or 20 
+app.get("/newOfferClues", async (req, res) => {
+  try{
+    const newOffer = await pool.query(
+      "SELECT new_price, productID, userid FROM offer ORDER BY offer_id DESC LIMIT 1;" 
+    );
+    if (newOffer.rows.length === 0) {
+      return res.status(404).json({ message: "There is no latest offer" });
+    }
+
+    //This is for the 50 points 
+   const recentPrice = await pool.query(
+      "SELECT * FROM price_history WHERE price_log_id = $1 ORDER BY date DESC LIMIT 1;",
+      [newOffer.rows[0].productid]
+    );
+     if (recentPrice.rows.length === 0) {
+       return res.status(404).json({ message: "There is no recent price for the product" });
+     }
+
+     //This is for the 20 points
+   const oldestPrice = await pool.query(
+     "SELECT price FROM price_history WHERE price_log_id = $1 ORDER BY date ASC LIMIT 1;",
+     [newOffer.rows[0].productid]
+    );
+    if (oldestPrice.rows.length === 0) {
+      return res.status(404).json({ message: "There is no oldest price for the product" });
+    }
+    
+    //Here it checks if the new price is lower by 20% from the last day price or the last week price 
+    const isGoodDealOldest = newOffer.rows[0].new_price < oldestPrice.rows[0].price * 0.8;
+    const isGoodDeal = newOffer.rows[0].new_price < recentPrice.rows[0].price * 0.8;
+    const userId = newOffer.rows[0].userid;
+    res.status(200).json({ isGoodDeal: isGoodDeal, isGoodDealOldest: isGoodDealOldest ,userId: userId });
+  
+  }catch(err){
+    console.log(err.message);
+  }
+
+});
+
 app.put("/offerlike", async (req, res) => {
   try {
     const { updatedlikes } = req.query;
