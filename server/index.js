@@ -104,6 +104,39 @@ app.get("/newOfferClues", async (req, res) => {
   }
 
 });
+
+//ελεγχει το ριακτ χιστορι και κανει ινσερτ το ριακσιον αν πρεπει
+app.post("/addReaction",  async (req, res) => {
+  try {
+    const { offerid }= req.query; 
+    const { user_id }= req.query; 
+    const checkreact = await pool.query(
+      "SELECT * FROM reaction_history WHERE offerid=$1 AND userid=$2",
+      [offerid, user_id]
+    );
+    res.json(checkreact.rows[0]);
+    if (checkreact.rows.length === 0) {
+      "INSERT INTO reaction_history (offerid, userid) values($1, $2)",
+      [offerid, user_id];
+      return res.status(404).json({ message: "There is no like from this user. " });
+    }
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//get all reaction history
+app.get("/checkReatcion", async (req, res) => {
+  try {
+    const check_reaction = await pool.query(
+      "SELECT * FROM reaction_history"
+    );
+    res.json(check_reaction.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 app.put("/offerlike", async (req, res) => {
   try {
     const { updatedlikes } = req.query;
