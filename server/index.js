@@ -61,15 +61,17 @@ app.get("/store", async (req, res) => {
 });
 
 
-//This gets the new price, productID and userid from the latest offer and checks if the new offer is a deal to give 50 points to or 20 
-app.get("/newOfferClues", async (req, res) => {
+// Here the users score is updated when he uploads an offer based on if the user has a good deal or it is a good deal for the average week price
+app.put("/updateUserScoreOnNewOffer", async (req, res) => {
   try{
+    
     const newOffer = await pool.query(
       "SELECT new_price, productID, userid FROM offer ORDER BY offer_id DESC LIMIT 1;" 
     );
     if (newOffer.rows.length === 0) {
       return res.status(404).json({ message: "There is no latest offer" });
     }
+
 
     //This is for the 50 points 
    const recentPrice = await pool.query(
@@ -80,31 +82,39 @@ app.get("/newOfferClues", async (req, res) => {
        return res.status(404).json({ message: "There is no recent price for the product" });
      }
 
+
      //This is for the 20 points
    const averagePrice = await pool.query(
      "SELECT AVG(price) as avg_price FROM price_history WHERE price_log_id = $1;",
      [newOffer.rows[0].productid]
     );
-   // console.log(averagePrice);
     if (averagePrice.rows.length === 0) {
       return res.status(404).json({ message: "There is no average price for the product" });
     }
     
+
     //Here it checks if the new price is lower by 20% from the last day price or the average last week price 
     const isGoodDealAverage = newOffer.rows[0].new_price < averagePrice.rows[0].avg_price * 0.8;
-    
+
     const isGoodDeal = newOffer.rows[0].new_price < recentPrice.rows[0].price * 0.8;
 
     const userId = newOffer.rows[0].userid;
 
-    res.status(200).json({ isGoodDeal: isGoodDeal, isGoodDealAverage: isGoodDealAverage ,userId: userId });
-  
+    //Now we check how many points we must give 
+    let score = 0;
+    if (isGoodDeal) {
+      score += 50;
+    }
+    if (isGoodDealAverage) {
+      score += 20;
+    }
+    await pool.query("UPDATE users SET score = score + $1 WHERE user_id = $2", [score, userId]);
+    res.status(200).json({ message: "Score updated successfully" });
   }catch(err){
     console.log(err.message);
   }
 
 });
-
 //ελεγχει το ριακτ χιστορι και κανει ινσερτ το ριακσιον αν πρεπει
 app.post("/addReaction",  async (req, res) => {
   try {
