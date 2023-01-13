@@ -136,7 +136,7 @@ app.post("/addReaction",  async (req, res) => {
 });
 
 //get all reaction history
-app.get("/checkReatcion", async (req, res) => {
+app.get("/checkReaction", async (req, res) => {
   try {
     const check_reaction = await pool.query(
       "SELECT * FROM reaction_history"
