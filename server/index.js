@@ -188,6 +188,32 @@ app.put("/offerscore", async (req, res) => {
   }
 });
 
+app.post("/addOffer",  async (req, res) => {
+  const { product_id, store_id, initialPrice, newPrice, userId }= req.body; 
+  try {
+    const addOffer = await pool.query(
+      "INSERT INTO offer(productid, storeid, init_price, new_price, userid) VALUES($1, $2, $3, $4, $5)",
+      [product_id, store_id, initialPrice, newPrice, userId]
+    );
+    res.json(addOffer.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+app.delete("/deleteOffer",  async (req, res) => {
+  const { offerId }= req.body; 
+  try {
+    const deleteOffer = await pool.query(
+      "DELETE FROM offer WHERE offer_id = $1",
+      [offerId]
+    );
+    res.json(deleteOffer.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 //REGISTER & LOGIN
 app.use("/auth", require("./jwtAuth"));
 
