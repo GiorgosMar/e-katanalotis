@@ -81,26 +81,29 @@ app.get("/newOfferClues", async (req, res) => {
      }
 
      //This is for the 20 points
-   const oldestPrice = await pool.query(
-     "SELECT price FROM price_history WHERE price_log_id = $1 ORDER BY date ASC LIMIT 1;",
+   const averagePrice = await pool.query(
+     "SELECT AVG(price) as avg_price FROM price_history WHERE price_log_id = $1;",
      [newOffer.rows[0].productid]
     );
-    if (oldestPrice.rows.length === 0) {
-      return res.status(404).json({ message: "There is no oldest price for the product" });
+   // console.log(averagePrice);
+    if (averagePrice.rows.length === 0) {
+      return res.status(404).json({ message: "There is no average price for the product" });
     }
     
-    //Here it checks if the new price is lower by 20% from the last day price or the last week price 
-    const isGoodDealOldest = newOffer.rows[0].new_price < oldestPrice.rows[0].price * 0.8;
+    //Here it checks if the new price is lower by 20% from the last day price or the average last week price 
+    const isGoodDealAverage = newOffer.rows[0].new_price < averagePrice.rows[0].avg_price * 0.8;
+    
     const isGoodDeal = newOffer.rows[0].new_price < recentPrice.rows[0].price * 0.8;
+
     const userId = newOffer.rows[0].userid;
-    res.status(200).json({ isGoodDeal: isGoodDeal, isGoodDealOldest: isGoodDealOldest ,userId: userId });
+
+    res.status(200).json({ isGoodDeal: isGoodDeal, isGoodDealAverage: isGoodDealAverage ,userId: userId });
   
   }catch(err){
     console.log(err.message);
   }
 
 });
-
 app.put("/offerlike", async (req, res) => {
   try {
     const { updatedlikes } = req.query;
