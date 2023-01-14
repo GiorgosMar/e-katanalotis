@@ -60,6 +60,24 @@ app.get("/store", async (req, res) => {
   }
 });
 
+//This gets for the logged user his submitted offers. The product name , the store ,the entry date and also likes and dislikes
+app.get("/showSubmittedOffers", async (req, res)=>{
+  
+  try {
+	const {userId} = req.query;
+	  const offersSubmitted = await pool.query(
+	    "SELECT offer.entry_date, offer.likes, offer.dislikes, store.name, products.name FROM offer JOIN store ON offer.storeID = store.id JOIN products ON offer.productID = products.id WHERE offer.userid = $1;",
+	    [userId]
+	  );
+
+    res.json(offersSubmitted.rows);
+	  
+  } catch (error) {
+	console.log(err.message);
+}
+
+});
+
 
 // Here the users score is updated when he uploads an offer based on if the user has a good deal or it is a good deal for the average week price
 app.put("/updateUserScoreOnNewOffer", async (req, res) => {
