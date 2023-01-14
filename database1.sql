@@ -21,14 +21,16 @@ CREATE TABLE IF NOT EXISTS users(
 ); 
 
 
-
 CREATE TABLE IF NOT EXISTS reaction_history(
-    offer_id SERIAL PRIMARY KEY,
+    offerid SERIAL PRIMARY KEY
+    REFERENCES offer(offer_id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
     userid UUID NOT NULL,
     react_date DATE,
     type BOOLEAN,
     CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES users(user_id)
     ON DELETE CASCADE ON UPDATE CASCADE
+
 ); 
 
 
