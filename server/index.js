@@ -115,6 +115,7 @@ app.put("/updateUserScoreOnNewOffer", async (req, res) => {
   }
 
 });
+
 //ελεγχει το ριακτ χιστορι και κανει ινσερτ το ριακσιον αν πρεπει
 app.post("/addReaction",  async (req, res) => {
   const { offerId, userId }= req.body; 
@@ -146,40 +147,38 @@ app.get("/checkReaction", async (req, res) => {
   }
 });
 
+//οταν χρηστης κανει λικε σε οφφερ, update likes tou offer και update to score tou xrhsth pou thn ypevale
 app.put("/offerlike", async (req, res) => {
   try {
-    const { updatedlikes } = req.query;
     const { offerid } = req.query;
+    const { userid } = req.query;
     const likeoffer = await pool.query(
-      "UPDATE offer SET likes = $1 WHERE offer_id = $2;",
-      [updatedlikes, offerid]
+      "UPDATE offer SET likes = likes + 1 WHERE offer_id = $1;",
+      [offerid]
     );
      res.json(likeoffer.rows);
+     const updatescore = await pool.query(
+      "UPDATE users SET score = score + 5 WHERE user_id = $1;",
+      [userid]
+    );
+    //res.json(updatescore.rows);
   } catch (err) {
     console.log(err.message);
   }
 });
 
+//οταν χρηστης κανει dislike σε προσφορα, update likes tou offer και update to score του χρηστη που την υπεβαλε
 app.put("/offerdislike", async (req, res) => {
   try {
-    const { updateddislikes } = req.query;
     const { offerid } = req.query;
-    const dislikeoffer = await pool.query(
-      "UPDATE offer SET dislikes = $1 WHERE offer_id = $2;",
-      [updateddislikes, offerid]
-    );
-    res.json(dislikeoffer.rows);
-  } catch (err) {
-    console.log(err.message);
-  }
-});
-
-app.put("/offerscore", async (req, res) => {
-  try {
-    //const { score } = req.query;
     const { userid } = req.query;
+    const dislikeoffer = await pool.query(
+      "UPDATE offer SET dislikes = dislikes + 1 WHERE offer_id = $1;",
+      [offerid]
+    );
+    //res.json(dislikeoffer.rows);
     const updatescore = await pool.query(
-      "UPDATE users SET score = score + 1 WHERE user_id = $1;",
+      "UPDATE users SET score = score -1 WHERE user_id = $1;",
       [userid]
     );
     res.json(updatescore.rows);
@@ -188,19 +187,30 @@ app.put("/offerscore", async (req, res) => {
   }
 });
 
+// 3) δευτερη παραγραφος
 app.post("/addOffer",  async (req, res) => {
-  const { product_id, store_id, initialPrice, newPrice, userId }= req.body; 
+  const { product_id, store_id, initialPrice, newPrice, userId, date }= req.body; 
   try {
-    const addOffer = await pool.query(
-      "INSERT INTO offer(productid, storeid, init_price, new_price, userid) VALUES($1, $2, $3, $4, $5)",
-      [product_id, store_id, initialPrice, newPrice, userId]
+    const selOffer = await pool.query(
+      "SELECT * FROM offer WHERE userid = $1 AND productid = $2 AND storeid = $3",
+      [userId, product_id, store_id]
+    );
+
+    if(selOffer.rows.length === 0 || newPrice <= 0.8 * selOffer.rows[0].new_price) {
+      const addOffer = await pool.query(
+      "INSERT INTO offer(productid, storeid, init_price, new_price, userid, entry_date) VALUES($1, $2, $3, $4, $5, $6)",
+      [product_id, store_id, initialPrice, newPrice, userId, date]
     );
     res.json(addOffer.rows);
+    }else{
+      res.status(200).json({ message: "the offer already exists" });
+    }
   } catch (err) {
     console.log(err.message);
   }
 });
 
+/* αυτο μαλλον σκουπιδια
 app.delete("/deleteOffer",  async (req, res) => {
   const { offerId }= req.body; 
   try {
@@ -213,6 +223,30 @@ app.delete("/deleteOffer",  async (req, res) => {
     console.log(err.message);
   }
 });
+*/
+
+// διαγραφη προσφορας (πρεπει μια βδομαδα μετα την υποβολη της)
+// ΟΧΙ ΕΤΟΙΜΟ, ΘΕΛΕΙ ΗΜΕΡΟΜΗΝΙΕΣ ΚΛΠ
+app.delete("/deleteOffer",  async (req, res) => {
+  const { offerId, date }= req.body; 
+  try {
+    const checkreact = await pool.query(
+      "SELECT entry_date,  FROM offer WHERE offer_id=$1",
+      [offerId]
+    );
+    res.json(checkreact.rows);
+
+    console.log(checkreact.rows[0]);
+    // if () {
+    //   const addLikedProduct = await pool.query("INSERT INTO reaction_history (offerid, userid) values($1, $2) RETURNING *",
+    //   [offerId, userId]);
+    //   return res.status(404).json(addLikedProduct.rows);
+    // }
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 
 //REGISTER & LOGIN
 app.use("/auth", require("./jwtAuth"));
