@@ -116,6 +116,23 @@ app.put("/updateUserScoreOnNewOffer", async (req, res) => {
 
 });
 
+
+
+//Here we take the new credentials and we update the user 
+app.put("/updateUserCredentials", async (req,res ) => {
+  try {
+    const { userId, newPassword, newUsername } = req.body;
+    const updateCredentials = await pool.query(
+      "UPDATE users SET user_name = $1 , user_password = $2 WHERE user_id = $3",
+      [newUsername,newPassword,userId]
+    );
+      res.json(updateCredentials.rows);
+  } catch (error) {
+    console.log(err.message);
+  }
+});
+
+
 //ελεγχει το ριακτ χιστορι και κανει ινσερτ το ριακσιον αν πρεπει
 app.post("/addReaction",  async (req, res) => {
   const { offerId, userId }= req.body; 
