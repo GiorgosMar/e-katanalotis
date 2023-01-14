@@ -192,7 +192,7 @@ app.post("/addOffer",  async (req, res) => {
   const { product_id, store_id, initialPrice, newPrice, userId, date }= req.body; 
   try {
     const selOffer = await pool.query(
-      "SELECT * FROM offer WHERE userid = $1 AND productid = $2 AND storeid = $3",
+      "SELECT * FROM offer WHERE userid = $1 AND productid = $2 AND storeid = $3 ORDER BY offer_id DESC",
       [userId, product_id, store_id]
     );
 
