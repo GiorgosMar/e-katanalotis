@@ -282,6 +282,19 @@ app.delete("/deleteOffer",  async (req, res) => {
   }
 });
 
+//εμφανιση ιστορικου λικε και ντισλικε του χρηστη (6).
+app.get("/userReactions", async (req, res) => {
+  try {
+    const {userId} = req.query;
+    const user_reaction = await pool.query(
+      "SELECT * FROM reaction_history WHERE userid = $1;",
+      [userId]
+    );
+    res.json(user_reaction.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
 
 //REGISTER & LOGIN
 app.use("/auth", require("./jwtAuth"));
