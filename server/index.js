@@ -227,8 +227,8 @@ app.post("/addOffer",  async (req, res) => {
   const { product_id, store_id, initialPrice, newPrice, userId, date }= req.body; 
   try {
     const selOffer = await pool.query(
-      "SELECT * FROM offer WHERE userid = $1 AND productid = $2 AND storeid = $3 ORDER BY offer_id DESC",
-      [userId, product_id, store_id]
+      "SELECT * FROM offer WHERE productid = $1 AND storeid = $2 ORDER BY offer_id DESC",
+      [product_id, store_id]
     );
 
     if(selOffer.rows.length === 0 || newPrice <= 0.8 * selOffer.rows[0].new_price) {
