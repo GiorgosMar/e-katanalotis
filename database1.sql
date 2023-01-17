@@ -93,6 +93,8 @@ CREATE TABLE IF NOT EXISTS offer(
     likes INT,
     dislikes INT,
     entry_date DATE,
+    userid uuid REFERENCES users(user_id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (offer_id),
     CONSTRAINT STRE
     FOREIGN KEY (storeID) REFERENCES store(id)
