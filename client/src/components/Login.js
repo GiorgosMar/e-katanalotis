@@ -1,5 +1,5 @@
-import React, { Fragment, useContext, useState } from "react";
-import { UserContext } from "./UserContext";
+import React, { Fragment, useContext, useState, useEffect } from "react";
+import { UserContext, UserCredentials } from "./UserContext";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -13,7 +13,8 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Alert from "@mui/material/Alert";
 import "../css/styles.css";
-import { getRadioUtilityClass } from "@mui/material";
+
+
 
 function Copyright(props) {
   return (
@@ -35,6 +36,8 @@ const theme = createTheme();
 const Login = () => {
   const { setIsAuthenticated } = useContext(UserContext);
   const { setRole } = useContext(UserContext);
+  const { userCredentials, setUserCredentials } = useContext(UserCredentials);
+
   const [inputs, setInputs] = useState({
     email: "",
     password: "",
@@ -68,6 +71,7 @@ const Login = () => {
         localStorage.setItem("token", parseRes.token);
         setIsAuthenticated(true);
         setRole(parseRes.user_credentials.user_role);
+        setUserCredentials(parseRes.user_credentials);
       } else {
         setIsAuthenticated(false);
       }
@@ -75,6 +79,7 @@ const Login = () => {
       console.error(err.message);
     }
   };
+
 
 
   return (

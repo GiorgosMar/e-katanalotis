@@ -2,10 +2,9 @@ import React, { Fragment, useContext, useState, useEffect } from "react";
 import {
   OfferProducts,
   OpenDialog,
-  UserContext,
+  UserCredentials,
   UserPosition,
 } from "./UserContext";
-import Grid from "@mui/material/Grid";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import SearchIcon from "@mui/icons-material/Search";
@@ -19,16 +18,19 @@ import { Container } from "@mui/system";
 import Alert from "@mui/material/Alert";
 import UserLocation from "./UserLocation";
 import Rating from "./Rating";
+import SubmitOffer from "./SubmitOffer";
+import Box from "@mui/material/Box";
 
 const DashboardUser = () => {
   //useState
-  const { setIsAuthenticated } = useContext(UserContext);
   const [stores, setStores] = useState([]);
   const [offerProducts, setOfferProducts] = useState([]);
   const [searchValue, setSearchValue] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [open, setOpen] = useState(false);
+  const [openSub, setOpenSub] = useState(false);
   const [position, setPosition] = useState(null);
+
 
   const getAllStores = async () => {
     try {
@@ -137,7 +139,7 @@ const DashboardUser = () => {
           <Alert severity="error"> {errorMessage}</Alert>
         )}
         <MapContainer
-          center={[51.505, -0.09]}
+          center={[38.24616237537946, 21.735024422651165]}
           zoom={15}
           scrollWheelZoom
           style={{ width: "100%", height: "100vh" }}
@@ -193,7 +195,7 @@ const DashboardUser = () => {
                         store.latitude,
                         store.longitude
                       ) < 10000 ? (
-                        <OfferProducts.Provider
+                      <OfferProducts.Provider
                         value={{
                           offerProducts,
                           setOfferProducts,
@@ -203,9 +205,20 @@ const DashboardUser = () => {
                           value={{
                             open,
                             setOpen,
+                            openSub,
+                            setOpenSub
                           }}
                         >
-                          <Rating store={store} />
+                          <Box
+                            component="span"
+                            m={1}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
+                            <Rating store={store} />
+                            <SubmitOffer store={store}/>
+                          </Box>
                         </OpenDialog.Provider>
                       </OfferProducts.Provider>
                     ) : (
@@ -240,9 +253,20 @@ const DashboardUser = () => {
                           value={{
                             open,
                             setOpen,
+                            openSub,
+                            setOpenSub
                           }}
                         >
-                          <Rating store={store} />
+                          <Box
+                            component="span"
+                            m={1}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
+                            <Rating store={store} />
+                            <SubmitOffer store={store}/>
+                          </Box>
                         </OpenDialog.Provider>
                       </OfferProducts.Provider>
                     ) : (
