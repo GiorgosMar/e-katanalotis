@@ -20,6 +20,13 @@ CREATE TABLE IF NOT EXISTS users(
     tokens INT DEFAULT 0 NOT NULL
 ); 
 
+CREATE TABLE IF NOT EXISTS tokens(
+    token_entry_id SERIAL PRIMARY KEY,
+    user_token UUID REFERENCES users(user_id)
+    ON UPDATE CASCADE ON DELETE CASCADE ,
+    num_tokens_entered INTEGER,
+    entered_date date
+);
 
 CREATE TABLE IF NOT EXISTS reaction_history(
     offerid SERIAL PRIMARY KEY
