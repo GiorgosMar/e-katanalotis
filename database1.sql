@@ -34,10 +34,9 @@ CREATE TABLE IF NOT EXISTS reaction_history(
     ON DELETE CASCADE ON UPDATE CASCADE,
     userid UUID NOT NULL,
     react_date DATE,
-    type BOOLEAN,
+    r_type BOOLEAN,
     CONSTRAINT C1 FOREIGN KEY (userid) REFERENCES users(user_id)
     ON DELETE CASCADE ON UPDATE CASCADE
-
 ); 
 
 
