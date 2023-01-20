@@ -112,6 +112,11 @@ app.get("/products", async (req, res) => {
 });
 
 
+
+
+//<---------------------------Αuta gia to 6------------------------------------------------->
+
+
 //This gets for the logged user his submitted offers. The product name , the store ,the entry date and also likes and dislikes
 app.get("/showSubmittedOffers", async (req, res) => {
   try {
@@ -126,8 +131,6 @@ app.get("/showSubmittedOffers", async (req, res) => {
     console.log(err.message);
   }
 });
-
-//<---------------------------Αuta gia to 6------------------------------------------------->
 
 //This gets the total score of the user and also the score that he has collected this month
 app.get("/showScore", async (req, res) => {
