@@ -100,10 +100,64 @@ app.put("/updateUserScoreOnNewOffer", async (req, res) => {
   }
 });
 
-app.get("/products", async (req, res) => {
+//εμφάνιση προσφορών στον χρήστη, εμφανιζονται οι προσφορες που ανεβηκαν το πολυ μια εβδομαδα πριν Ή πληρούν τα κριτήρια 5αι ή 5αιι. (εκφώνηση "διαγραφή προσφορών")
+app.put("/products", async (req, res) => {
   try {
+    const newOffer = await pool.query(
+      "SELECT new_price, offer_id, productID, userid FROM offer ORDER BY offer_id ASC;"
+    );
+    console.log(newOffer.rows);
+    let i = 0;
+    while(newOffer.rows[i] !== undefined){
+      console.log("epanalipsi #" + i);
+
+      // const newOffer = await pool.query(
+      //   "SELECT productID, new_price, offer_id, userid FROM offer;"
+      // );
+      //5ai
+      const recentPrice = await pool.query(
+        "SELECT * FROM price_history WHERE price_log_id = $1 ORDER BY date DESC LIMIT 1;",
+        [newOffer.rows[i].productid]
+      );
+       const json1 = recentPrice.rows;
+      //console.log(recentPrice.rows);
+       if (recentPrice.rows.length !== 0) {
+        //  return res
+        //    .status(404)
+        //    .json({ message: "There is no recent price for the product" });
+        
+        //res.json(recentPrice.rows);    
+        
+       }
+
+      //5aii
+      const averagePrice = await pool.query(
+        "SELECT AVG(price) as avg_price FROM price_history WHERE price_log_id = $1;",
+        [newOffer.rows[i].productid]
+      );
+
+      //  if (averagePrice.rows.length === 0) {
+      //   //  return res
+      //   //    .status(404)
+      //   //    .json({ message: "There is no average price for the product" });
+      //  }
+      //Here it checks if the new price is lower by 20% from the last day price or the average last week price
+      const isGoodDealAverage = newOffer.rows[i].new_price < averagePrice.rows[0].avg_price * 0.8;
+      const isGoodDeal = newOffer.rows[i].new_price < recentPrice.rows[0].price * 0.8;
+      const offerId = newOffer.rows[i].offer_id;
+      
+      if(!isGoodDeal && !isGoodDealAverage){
+        const setValid = await pool.query(
+          "UPDATE offer SET valid = false WHERE offer_id = $1 AND entry_date < (now() - interval '7 days ');",
+          [offerId]
+        );
+        const set_valid = setValid.rows;
+        console.log(set_valid);
+      }
+      i++;
+    }
     const offerProducts = await pool.query(
-      "SELECT * FROM products INNER JOIN offer ON products.product_id = offer.productID INNER JOIN store ON offer.storeID = store.id;"
+      "SELECT offer_id, product_id, entry_date FROM products INNER JOIN offer ON products.product_id = offer.productID INNER JOIN store ON offer.storeID = store.id where valid = true;",
     );
     res.json(offerProducts.rows);
   } catch (err) {
