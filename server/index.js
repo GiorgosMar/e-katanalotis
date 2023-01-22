@@ -231,16 +231,18 @@ app.get("/showReaction", async (req, res) => {
 //Here we update the user's password
 app.put("/updateUserPassword", async (req, res) => {
   try {
-    const { userId, newPassword } = req.body;
+    const { userId,newConfPassword, newPassword } = req.body;
     const updatePassword = await pool.query(
-      "UPDATE users SET user_password = $1 WHERE user_id = $2",
-      [newPassword, userId]
+      "UPDATE users SET user_password = $1 , user_conf_password=$2 WHERE user_id = $3",
+      [newPassword,newConfPassword, userId]
     );
     res.json(updatePassword.rows);
   } catch (error) {
     console.log(err.message);
   }
 });
+
+
 
 //Here we update the user's username
 app.put("/updateUsername", async (req, res) => {
