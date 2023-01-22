@@ -170,63 +170,48 @@ app.put("/products", async (req, res) => {
 
 //<---------------------------Αuta gia to 6------------------------------------------------->
 
-
-//This gets for the logged user his submitted offers. The product name , the store ,the entry date and also likes and dislikes
-app.get("/showSubmittedOffers", async (req, res) => {
+//Here we show all the Stats for the user to see
+app.get("/showStats", async (req, res) => {
   try {
     const { userId } = req.query;
-    const offersSubmitted = await pool.query(
-      "SELECT offer.entry_date, offer.likes, offer.dislikes, store.name, products.name FROM offer JOIN store ON offer.storeID = store.id JOIN products ON offer.productID = products.id WHERE offer.userid = $1;",
-      [userId]
-    );
-
-    res.json(offersSubmitted.rows);
-  } catch (error) {
-    console.log(err.message);
-  }
-});
-
-//This gets the total score of the user and also the score that he has collected this month
-app.get("/showScore", async (req, res) => {
-  try {
-    const { userId } = req.query;
-    const userScore = await pool.query(
-      "SELECT score,score_month FROM users WHERE user_id = $1",
-      [userId]
-    );
-    res.json(userScore.rows);
-  } catch (error) {
-    console.log(err.message);
-  }
-});
-
-//This gets the last entry of tokens for the user and also the total of tokens he has collected
-app.get("/showTokens", async (req, res) => {
-  try {
-    const { userId } = req.query;
-    const userTokens = await pool.query(
-      "SELECT num_tokens_entered, SUM(num_tokens_entered) OVER (PARTITION BY user_token) as total_tokens FROM tokens WHERE user_token = $1 ORDER BY entered_date DESC LIMIT 1;",
-      [userId]
-    );
-    res.json(userTokens.rows);
-  } catch (error) {
-    console.log(err.message);
-  }
-});
-
-//This gets the reactions that a user has done: The reaction date, the reaction type, the product name and the name of the store
-app.get("/showReaction", async (req, res) => {
-  try {
-    const { userId } = req.query;
+    
+    //This gets the reactions that a user has done: The reaction date, the reaction type, the product name and the name of the store
     const allReactions = await pool.query(
       "SELECT rh.react_date, rh.r_type, st.name, pr.product_name FROM reaction_history rh JOIN offer o ON rh.offerid = o.offer_id JOIN store st ON o.storeID = st.id JOIN products pr ON o.productID = pr.id WHERE rh.userid = $1;",
       [userId]
     );
-    res.json(allReactions.rows);
-  } catch (error) {
+    
+    //This gets the last entry of tokens for the user and also the total of tokens he has collected
+    const userTokens = await pool.query(
+      "SELECT num_tokens_entered, SUM(num_tokens_entered) OVER (PARTITION BY user_token) as total_tokens FROM tokens WHERE user_token = $1 ORDER BY entered_date DESC LIMIT 1;",
+      [userId]
+    );
+    
+    //This gets the total score of the user and also the score that he has collected this month
+    const userScore = await pool.query(
+      "SELECT score,score_month FROM users WHERE user_id = $1",
+      [userId]
+    );
+    
+    //This gets for the logged user his submitted offers. The product name , the store ,the entry date and also likes and dislikes
+    const offersSubmitted = await pool.query(
+      "SELECT offer.entry_date, offer.likes, offer.dislikes, store.name, products.product_name FROM offer JOIN store ON offer.storeID = store.id JOIN products ON offer.productID = products.id WHERE offer.userid = $1;",
+      [userId]
+    );
+    
+    //Here we pass into const the rows of the above queries 
+    const reactions = allReactions.rows;
+    const tokens = userTokens.rows;
+    const score = userScore.rows;
+    const offers = offersSubmitted.rows;
+    
+    //And return all in one JSON
+    res.json({ reactions, tokens, score, offers });
+  } catch (err) {
     console.log(err.message);
   }
 });
+
 
 //Here we update the user's password
 app.put("/updateUserPassword", async (req, res) => {
