@@ -203,6 +203,21 @@ app.get("/showStats", async (req, res) => {
 });
 
 
+//This gets the new Credentials for the user
+app.get("/updatedUserCreds", async (req, res) => {
+  try {
+    const userId = req.query;
+    const userCreds = await pool.query(
+      "SELECT * FROM users WHERE user_id = $1; ",
+      [userId]
+    );
+    res.json(userCreds.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+
 //Here we update the user's password
 app.put("/updateUserPassword", async (req, res) => {
   try {
