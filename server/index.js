@@ -101,7 +101,7 @@ async function theLoop() {
 }
 
 // checks once a day
-setInterval(theLoop, 8640000);
+setInterval(theLoop, 86400000);
 
 
 //ROUTES
