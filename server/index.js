@@ -8,6 +8,102 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+//DAILY CHECKS FOR TOKENS AND MONTHLY SCORE 
+
+async function countUsers() {
+  // Get number of users
+  const query = "SELECT COUNT(*) as count FROM users;";
+  const res = await pool.query(query);
+  const numUsers = +res.rows[0].count;
+
+  return numUsers;
+}
+
+async function refundTokens(tokensToRefund, numUsers) {
+  if (numUsers !== 0 && !isNaN(tokensToRefund)) {
+    // Calculate amount of tokens to give to each user
+    const tokensPerUser = Math.round(tokensToRefund / numUsers);
+    console.log(tokensPerUser);
+    try {
+      // Insert the token entries for all users
+      const userId = await pool.query("SELECT user_id FROM users;");
+      let i = 0;
+      while (userId.rows[i] !== undefined) {
+        await pool.query(
+          "INSERT INTO tokens (user_token,num_tokens_entered,entered_date) VALUES ($1,$2,now());",
+          [userId.rows[i].user_id, tokensPerUser]
+        );
+        console.log("Inserted for user no " + i);
+        i++;
+      }
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+}
+
+let counterFirst = 0;
+let counterSecond = 1;
+//1 of month
+async function first() {
+  const numUsers = await countUsers();
+  const tokensToRefund = 80 * numUsers ;
+  console.log("first");
+  await pool.query("INSERT INTO tokens_to_refund(num_tokens) VALUES ($1);", [tokensToRefund]);
+  counterFirst++;
+}
+
+//telos tou mhna
+async function second() {
+  const newNumUsers = await countUsers();
+  const tokensToSplit = await pool.query("SELECT num_tokens from tokens_to_refund ORDER BY id DESC LIMIT 1;");
+  console.log(tokensToSplit.rows[0].num_tokens);
+  refundTokens(tokensToSplit.rows[0].num_tokens, newNumUsers);
+  await pool.query("DELETE FROM tokens_to_refund;");
+  counterSecond++;
+}
+
+// async function theLoop() {
+//   let currentDate = new Date();
+
+//   if(currentDate.getSeconds() === 1){
+//     await pool.query("UPDATE users SET score_month = 0;");
+//     console.log("first function");
+//     first();
+//   }
+//   if(currentDate.getSeconds() === 30){
+//     if(counterFirst === counterSecond){
+//       console.log("second function");
+//       second();
+//     }
+//   }
+// }
+
+// setInterval(theLoop, 1000);
+
+async function theLoop() {
+  let currentDate = new Date();
+  //let currentDate = new Date(2023, 1, 15); //for exams
+
+//if it is first day of the month
+  if(currentDate.getSeconds() === 1){
+    await pool.query("UPDATE users SET score_month = 0;");
+    console.log("first function");
+    first();
+  }
+  //if it is last day of the month
+  if(currentDate.getDate() === new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()){
+    if(counterFirst === counterSecond){
+      console.log("second function");
+      second();
+    }
+  }
+}
+
+// checks once a day
+setInterval(theLoop, 8640000);
+
+
 //ROUTES
 
 app.get("/productsForSubmitOffer", async (req, res) => {
