@@ -577,15 +577,16 @@ app.post("/insertProduct", async (req, res) => {
 
 app.delete("/deleteProduct", async (req, res) => {
   try {
-    const { productName } = req.query;
+    const { productId } = req.query;
     const deleteProduct = await pool.query(
-      "DELETE FROM products WHERE product_name = $1;",
-      [productName]
+      "DELETE FROM products WHERE product_id = $1;",
+      [productId]
     );
     res.status(200).json({ message: "Product deleted" });
   } catch (error) {
     console.log(error.message);
   }
 });
+
 
 
