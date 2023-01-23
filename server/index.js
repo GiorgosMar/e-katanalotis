@@ -524,3 +524,42 @@ app.get("/userLeaderBoard", async (req, res) => {
     console.log(err.message);
   }
 });
+
+
+
+app.get("/getCategories", async (req, res) => {
+  try {
+    const allCategories = await pool.query("SELECT * FROM categories;");
+    res.json(allCategories.rows);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+app.get("/getSubcategories", async (req, res) => {
+  try {
+    const { parentCategory } = req.query;
+    const subgategories = await pool.query(
+      "SELECT * FROM subcategories WHERE parent_category = $1; ",
+      [parentCategory]
+    );
+    res.json(subgategories.rows);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+app.get("/getProductsFromSubcategory", async (req, res) => {
+  try {
+    const { parentSubcategory } = req.query;
+    const products = await pool.query(
+      "SELECT * FROM products WHERE subcategory = $1 ",
+      [parentSubcategory]
+    );
+    res.json(products.rows);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+
