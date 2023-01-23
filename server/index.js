@@ -562,4 +562,30 @@ app.get("/getProductsFromSubcategory", async (req, res) => {
   }
 });
 
+app.post("/insertProduct", async (req, res) => {
+  try {
+    const { productName, category, subcategory } = req.body;
+    const insertProduct = await pool.query(
+      "INSERT INTO products (product_name,category,subcategory) VALUES ($1,$2,$3);",
+      [productName, category, subcategory]
+    );
+    res.status(200).json({ message: "Product Inserted" });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+app.delete("/deleteProduct", async (req, res) => {
+  try {
+    const { productName } = req.query;
+    const deleteProduct = await pool.query(
+      "DELETE FROM products WHERE product_name = $1;",
+      [productName]
+    );
+    res.status(200).json({ message: "Product deleted" });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
 
