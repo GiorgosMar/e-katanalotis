@@ -589,4 +589,84 @@ app.delete("/deleteProduct", async (req, res) => {
 });
 
 
+// 2.
+
+//add store
+app.post("/addStore", async (req, res) => {
+  try {
+    const { osm_id, store_name, shop_type, store_location } = req.body;
+    const addStore = await pool.query(
+      "INSERT INTO store (osm_id, name, shop, location) values($1, $2, $3, $4) RETURNING *",
+      [osm_id, store_name, shop_type, store_location]
+    );
+    return res.json(addStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//update store
+app.put("/updateStore", async (req, res) => {
+  try {
+    const { store_name, shop_type, store_location, store_id } = req.body;
+    const updateStore = await pool.query(
+      "UPDATE store SET name = $1, shop = $2, location = $3 WHERE id = $4;",
+      [store_name, shop_type, store_location, store_id]
+    );
+    console.log("etrexe");
+    res.json(updateStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//delete offer (sets valid=false)
+app.put("/deleteOffer", async (req, res) => {
+  try {
+    const { offer_id } = req.body;
+    const updateStore = await pool.query(
+      "UPDATE offer SET valid = false WHERE offer_id = $1;",
+      [offer_id]
+    );
+    res.json(updateStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//charts
+app.get("/numOfOffers", async (req, res) => {
+  try {
+    const { offerDate } = req.query;
+    console.log(offerDate);
+    const countOffers = await pool.query(
+      "SELECT COUNT(*) FROM offer WHERE entry_date = $1;",
+      [offerDate]
+    );
+    
+    res.json(countOffers.rows[0].count);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+app.get(
+  
+)
+
+//delete store
+app.delete("/deleteStore", async (req, res) => {
+  try {
+    const { store_id } = req.body;
+    const deleteStore = await pool.query(
+      "DELETE FROM store WHERE id = $1;", 
+      [store_id]
+    );
+    res.json(deleteStore.rows[0]);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+
 
