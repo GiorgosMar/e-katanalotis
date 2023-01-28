@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS subcategories(
 );
 
 CREATE TABLE IF NOT EXISTS products(
-    id SERIAL PRIMARY KEY,
+    product_id SERIAL PRIMARY KEY,
     name VARCHAR(50),
     category VARCHAR(50) ,
     subcategory	 VARCHAR(50),
