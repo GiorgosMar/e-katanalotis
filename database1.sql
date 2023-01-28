@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS subcategories(
     parent_category VARCHAR(50),
     CONSTRAINT C3 FOREIGN KEY (parent_category) REFERENCES categories(category_name)
     ON DELETE CASCADE ON UPDATE CASCADE
+    parent_category_id VARCHAR(50)
+    REFERENCES categories(category_id)
 );
 
 CREATE TABLE IF NOT EXISTS products(
