@@ -463,6 +463,21 @@ app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
 });
 
+//get store info for AUTOCOMPLETE
+app.get("/getStoreInfo",  async (req, res) => {
+try {
+  const {storeId} = req.query;
+  const getStore = await pool.query(
+    "SELECT name, shop, ST_X(location) AS lon, ST_Y(location) AS lat FROM store WHERE id = $1;",
+    [storeId]
+  );
+  res.json(getStore.rows);
+
+  } catch (err) {
+    console.log(err.message);
+  }
+
+});
 
 //add store
 app.post("/addStore", async (req, res) => {
