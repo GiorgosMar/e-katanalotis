@@ -464,6 +464,20 @@ app.listen(PORT, () => {
 });
 
 
+//add store
+app.post("/addStore", async (req, res) => {
+  try {
+    const { nameStore, shop, lat, lon } = req.body;
+    const store_location = "POINT ("+lat+" "+lon+")";
+    const addStore = await pool.query(
+      "INSERT INTO store (name, shop, location) values($1, $2, $3) RETURNING *",
+      [nameStore, shop, store_location]
+    );
+    return res.json(addStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
 
 //update store
 
