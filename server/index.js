@@ -444,6 +444,19 @@ app.delete("/deleteProduct", async (req, res) => {
   }
 });
 
+
+//This gets all the users ordered by their highest score
+app.get("/userLeaderBoard", async (req, res) => {
+  try {
+    const leaderBoard = await pool.query(
+      "SELECT users.user_name,users.score, SUM(tokens.num_tokens_entered) as total_tokens, (SELECT num_tokens_entered FROM tokens WHERE tokens.user_token = users.user_id AND entered_date = (SELECT MAX(entered_date) FROM tokens WHERE tokens.user_token = users.user_id)) as latest_num_tokens_entered FROM users LEFT JOIN tokens ON users.user_id = tokens.user_token GROUP BY users.user_id, users.user_name ORDER BY users.score desc;"
+    );
+    res.json(leaderBoard.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
 });
