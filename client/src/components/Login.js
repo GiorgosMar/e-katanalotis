@@ -36,7 +36,7 @@ const theme = createTheme();
 const Login = () => {
   const { setIsAuthenticated } = useContext(UserContext);
   const { setRole } = useContext(UserContext);
-  const { userCredentials, setUserCredentials } = useContext(UserCredentials);
+  const { setUserCredentials } = useContext(UserCredentials);
 
   const [inputs, setInputs] = useState({
     email: "",

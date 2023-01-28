@@ -25,6 +25,17 @@ const SubmitOffer = (store) => {
   const { openSub, setOpenSub } = useContext(OpenDialog);
   const { userCredentials } = useContext(UserCredentials);
 
+  //parse float
+  const parseFloatData = (string) => {
+    let data = null;
+    if (string != null && string !== "") {
+      data = parseFloat(string);
+    } else {
+      data = null;
+    }
+    return data;
+  };
+
   //useStates//
   const [submitOffer, setSubmitOffer] = useState({
     product_id: null,
@@ -34,6 +45,7 @@ const SubmitOffer = (store) => {
     userId: userCredentials.user_id,
     date: null,
   });
+
   const [products, setProducts] = useState([]);
   const [errorMessage, setErrorMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
@@ -80,11 +92,17 @@ const SubmitOffer = (store) => {
             setSuccessMessage(
               "Επιτυχής καταχώρηση προσφοράς. Συγχαρητήρια πήρες 70 πόντους!"
             );
-          } else if (setScore.isGoodDealAverage === true && getScore.isGoodDeal === false ) {
+          } else if (
+            setScore.isGoodDealAverage === true &&
+            getScore.isGoodDeal === false
+          ) {
             setSuccessMessage(
               "Επιτυχής καταχώρηση προσφοράς. Συγχαρητήρια πήρες 20 πόντους!"
             );
-          } else if (getScore.isGoodDeal === true && getScore.isGoodDealAverage === false) {
+          } else if (
+            getScore.isGoodDeal === true &&
+            getScore.isGoodDealAverage === false
+          ) {
             setSuccessMessage(
               "Επιτυχής καταχώρηση προσφοράς. Συγχαρητήρια πήρες 50 πόντους!"
             );
@@ -119,7 +137,6 @@ const SubmitOffer = (store) => {
   //useEffects
   useEffect(() => {
     getProducts();
-    console.log(submitOffer);
   }, []);
 
   return (
@@ -187,7 +204,7 @@ const SubmitOffer = (store) => {
               onChange={(e) =>
                 setSubmitOffer({
                   ...submitOffer,
-                  initialPrice: parseFloat(e.target.value),
+                  initialPrice: parseFloatData(e.target.value),
                 })
               }
             />
@@ -205,7 +222,7 @@ const SubmitOffer = (store) => {
               onChange={(e) =>
                 setSubmitOffer({
                   ...submitOffer,
-                  newPrice: parseFloat(e.target.value),
+                  newPrice: e.target.value,
                 })
               }
             />

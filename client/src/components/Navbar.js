@@ -4,14 +4,16 @@ import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import SearchBar from "./SearchBar";
 import { UserContext } from "./UserContext";
+import { useNavigate } from "react-router-dom";
 
 export default function ButtonAppBar() {
+  //useNavigate
+  const navigate = useNavigate();
   //useContext
   const { setIsAuthenticated } = useContext(UserContext);
 
-  const logout = async e => {
+  const logout = async (e) => {
     e.preventDefault();
     try {
       localStorage.removeItem("token");
@@ -26,6 +28,7 @@ export default function ButtonAppBar() {
         <Toolbar>
           <ShoppingCartIcon
             sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
+            onClick={() => navigate("/")}
           />
           <Typography
             variant="h6"
@@ -47,7 +50,7 @@ export default function ButtonAppBar() {
           <Typography
             textAlign="center"
             sx={[
-              { px: 2 },
+              { px: 2, ml: 110 },
               {
                 "&:hover": {
                   padding: 2,
@@ -57,22 +60,7 @@ export default function ButtonAppBar() {
                 },
               },
             ]}
-          >
-            Υποβολή προσφοράς & Tokens
-          </Typography>
-          <Typography
-            textAlign="center"
-            sx={[
-              { px: 2, ml: 75 },
-              {
-                "&:hover": {
-                  padding: 2,
-                  borderRadius: 1,
-                  color: "white",
-                  backgroundColor: "#62B6B7",
-                },
-              },
-            ]}
+            onClick={() => navigate("/infoUser")}
           >
             Επεξεργασία προφίλ
           </Typography>
@@ -90,7 +78,7 @@ export default function ButtonAppBar() {
                 },
               },
             ]}
-            onClick={e => logout(e)}
+            onClick={(e) => logout(e)}
           >
             Αποσύνδεση
           </Typography>

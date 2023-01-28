@@ -1,9 +1,8 @@
-import React, { Fragment, useContext, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useContext } from "react";
 import {
   OfferProducts,
   OpenDialog,
-  UserCredentials,
-  UserPosition,
+  UserPosition
 } from "./UserContext";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -31,7 +30,6 @@ const DashboardUser = () => {
   const [openSub, setOpenSub] = useState(false);
   const [position, setPosition] = useState(null);
 
-
   const getAllStores = async () => {
     try {
       const response = await fetch("http://localhost:5000/store");
@@ -45,7 +43,7 @@ const DashboardUser = () => {
 
   const getOfferProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/products");
+      const response = await fetch("http://localhost:5000/offerProducts");
       const getOfferProducts = await response.json();
       setOfferProducts(getOfferProducts);
     } catch (err) {
@@ -92,6 +90,7 @@ const DashboardUser = () => {
     getAllStores();
     getOfferProducts();
   }, []);
+
 
   //format date //
   const getFormattedDate = (dateStr) => {

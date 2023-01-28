@@ -80,13 +80,13 @@ const Register = () => {
 
   return (
     <Fragment>
-      <Container disableGutters="true" maxWidth="xl" className="out-box">
+      <Container disableGutters maxWidth="xl" className="out-box">
         <div className="background-image">
           <ThemeProvider theme={theme}>
             <Container maxWidth="xs">
               <CssBaseline />
               <Box
-                disableGutters="true"
+                disableGutters
                 sx={{
                   marginTop: 0,
                   display: "flex",
