@@ -383,6 +383,8 @@ app.get("/showStats", async (req, res) => {
   }
 });
 
+
+//-----------------------------------ADMIN-----------------------------------------//
 app.get("/getCategories", async (req, res) => {
   try {
     const allCategories = await pool.query("SELECT * FROM categories;");
@@ -462,7 +464,7 @@ app.listen(PORT, () => {
 });
 
 
-//-----------------------------------ADMIN-----------------------------------------//
+
 //update store
 
 app.put("/updateStore", async (req, res) => {
@@ -484,6 +486,37 @@ app.put("/updateStore", async (req, res) => {
     );
 
     res.json(updateStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//delete offer (sets valid=false)
+app.put("/deleteOffer", async (req, res) => {
+  try {
+    const { offer_id } = req.body;
+    const updateStore = await pool.query(
+      "UPDATE offer SET valid = false WHERE offer_id = $1;",
+      [offer_id]
+    );
+    res.json(updateStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+//charts
+//chart1
+app.get("/numOfOffers", async (req, res) => {
+  try {
+    const { offerDate } = req.query;
+    console.log(offerDate);
+    const countOffers = await pool.query(
+      "SELECT COUNT(*) FROM offer WHERE entry_date = $1;",
+      [offerDate]
+    );
+    
+    res.json(countOffers.rows[0].count);
   } catch (err) {
     console.log(err.message);
   }
