@@ -459,9 +459,6 @@ app.get("/userLeaderBoard", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`server started on port ${PORT}`);
-});
 
 //get store info for AUTOCOMPLETE
 app.get("/getStoreInfo",  async (req, res) => {
@@ -495,23 +492,13 @@ app.post("/addStore", async (req, res) => {
 });
 
 //update store
-
 app.put("/updateStore", async (req, res) => {
   try {
     const { storeId, newStoreName, shop, lat, lon } = req.body;
-    let storeName = newStoreName;
     const store_location = "POINT ("+lat+" "+lon+")";
-
-    if(newStoreName === ""){
-      const getStore = await pool.query(
-        "SELECT name FROM store WHERE id = $1;",
-        [storeId]
-      );
-      storeName = getStore.rows[0].name;
-    }
     const updateStore = await pool.query(
       "UPDATE store SET name = $1, shop = $2, location = $3 WHERE id = $4;",
-      [storeName, shop, store_location, storeId]
+      [newStoreName, shop, store_location, storeId]
     );
 
     res.json(updateStore.rows);
@@ -534,6 +521,20 @@ app.put("/deleteOffer", async (req, res) => {
   }
 });
 
+//delete store
+app.delete("/deleteStore", async (req, res) => {
+  try {
+    const { store_id } = req.body;
+    const deleteStore = await pool.query(
+      "DELETE FROM store WHERE id = $1;", 
+      [store_id]
+    );
+    res.json(deleteStore.rows[0]);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 //charts
 //chart1
 app.get("/numOfOffers", async (req, res) => {
@@ -550,3 +551,8 @@ app.get("/numOfOffers", async (req, res) => {
     console.log(err.message);
   }
 });
+
+app.listen(PORT, () => {
+  console.log(`server started on port ${PORT}`);
+});
+
