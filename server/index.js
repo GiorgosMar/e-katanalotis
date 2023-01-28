@@ -480,7 +480,7 @@ try {
 app.post("/addStore", async (req, res) => {
   try {
     const { nameStore, shop, lat, lon } = req.body;
-    const store_location = "POINT ("+lat+" "+lon+")";
+    const store_location = "POINT ("+lon+" "+lat+")";
     const addStore = await pool.query(
       "INSERT INTO store (name, shop, location) values($1, $2, $3) RETURNING *",
       [nameStore, shop, store_location]
@@ -495,7 +495,7 @@ app.post("/addStore", async (req, res) => {
 app.put("/updateStore", async (req, res) => {
   try {
     const { storeId, newStoreName, shop, lat, lon } = req.body;
-    const store_location = "POINT ("+lat+" "+lon+")";
+    const store_location = "POINT ("+lon+" "+lat+")";
     const updateStore = await pool.query(
       "UPDATE store SET name = $1, shop = $2, location = $3 WHERE id = $4;",
       [newStoreName, shop, store_location, storeId]
