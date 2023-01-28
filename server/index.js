@@ -460,3 +460,31 @@ app.get("/userLeaderBoard", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
 });
+
+
+//-----------------------------------ADMIN-----------------------------------------//
+//update store
+
+app.put("/updateStore", async (req, res) => {
+  try {
+    const { storeId, newStoreName, shop, lat, lon } = req.body;
+    let storeName = newStoreName;
+    const store_location = "POINT ("+lat+" "+lon+")";
+
+    if(newStoreName === ""){
+      const getStore = await pool.query(
+        "SELECT name FROM store WHERE id = $1;",
+        [storeId]
+      );
+      storeName = getStore.rows[0].name;
+    }
+    const updateStore = await pool.query(
+      "UPDATE store SET name = $1, shop = $2, location = $3 WHERE id = $4;",
+      [storeName, shop, store_location, storeId]
+    );
+
+    res.json(updateStore.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
