@@ -5,38 +5,179 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import { OpenDialog, OfferProducts, ReactedProducts } from "./UserContext";
+import { OpenDialog, OfferProducts, UserCredentials } from "./UserContext";
+import IconButton from "@mui/material/IconButton";
+import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
+import ThumbDownOffAltOutlinedIcon from "@mui/icons-material/ThumbDownOffAltOutlined";
+//import Checkbox from "@mui/material/Checkbox";
 import { useNavigate } from "react-router-dom";
-import ReactionOffer from "./ReactionOffer";
-
 
 const Rating = (store) => {
   //useNavigate
   const navigate = useNavigate();
-  //useState
-  const [reactedProducts, setReactedProducts] = useState([]);
 
   //useContext
   const { open, setOpen } = useContext(OpenDialog);
   const { offerProducts } = useContext(OfferProducts);
+  const { userCredentials } = useContext(UserCredentials);
 
-  //<------------- handlers ------------->
+  //useStates
+  const [likedProducts, setLikedProducts] = useState([]);
+  const [todayDate, setTodayDate] = useState(null);
+  const [disableLikeButton, setDisableLikeButton] = useState(false);
+  const [disableUnlikeButton, setDisableUnlikeButton] = useState(false);
 
-  //hanlder for open rating
+  const deleteLikedProduct = async (offerId, userId) => {
+    try {
+      await fetch(
+        `http://localhost:5000/deleteLikedProduct?offerid=${offerId}&userid=${userId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      getReactedProducts();
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+//format date //
+const getFormattedDate = (dateStr) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB");
+};
+
+
+const today = () => {
+  const current = new Date();
+  //setTodayDate(getFormattedDate(current));
+  setTodayDate(current);
+  const forma = getFormattedDate(current);
+  const dollar = `${current.getFullYear()}-${current.getMonth()+1}-${current.getDate()}`;
+  console.log("date = " + todayDate);
+  console.log("getforma = " + forma);
+  console.log("dollar = " + dollar);
+}
+
+  useEffect(() => {
+    today();
+  }, []);
+
+  
+
+  const addReactionProduct = async (offerId, userId, like, date,) => {
+    const body = { offerId, userId, like, date };
+    await fetch("http://localhost:5000/addReaction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    getReactedProducts();
+    console.log("addReactionProduct (kanei fetch thn addReaction) : " + body);
+  };
+
+  const getReactedProducts = async () => {
+    try {
+      const resLikedProducts = await fetch(
+        "http://localhost:5000/checkReaction"
+      );
+      const getReactedProducts = await resLikedProducts.json();
+
+      setLikedProducts(getReactedProducts);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const updateLikes = async (val1, val2, ) => {
+    try {
+      const body = { val1, val2 };
+      await fetch(
+        `http://localhost:5000/offerlike?updatedlikes=${val1}&offerid=${val2}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const updateDislikes = async (val1, val2) => {
+    try {
+      const body = { val1, val2 };
+      await fetch(
+        `http://localhost:5000/offerdislike?updateddislikes=${val1}&offerid=${val2}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const handleClickLike = (indexProduct) => {
+    if (
+      !likedProducts.find(
+        ({ offerid, userid, r_type }) =>
+          offerid === indexProduct.offer_id &&
+          userid === userCredentials.user_id &&
+          r_type === true
+      )
+    ) {
+      indexProduct.likes = indexProduct.likes + 1;
+      updateLikes(indexProduct.likes, indexProduct.offer_id);
+      addReactionProduct(indexProduct.offer_id, userCredentials.user_id, true, todayDate);
+      setDisableUnlikeButton(true);
+    } else {
+      indexProduct.likes = indexProduct.likes - 1;
+      updateLikes(indexProduct.likes, indexProduct.offer_id);
+      deleteLikedProduct(indexProduct.offer_id, userCredentials.user_id);
+      setDisableUnlikeButton(false);
+    }
+  };
+
+  const handleClickDislike = (indexProduct) => {
+    if (
+      !likedProducts.find(
+        ({ offerid, userid, r_type }) =>
+          offerid === indexProduct.offer_id &&
+          userid === userCredentials.user_id &&
+          r_type === false
+      )
+    ) {
+      indexProduct.dislikes = indexProduct.dislikes + 1;
+      updateDislikes(indexProduct.dislikes, indexProduct.offer_id);
+      addReactionProduct(indexProduct.offer_id, userCredentials.user_id, false, todayDate);
+      setDisableLikeButton(true);
+    } else {
+      indexProduct.dislikes = indexProduct.dislikes - 1;
+      updateDislikes(indexProduct.dislikes, indexProduct.offer_id);
+      deleteLikedProduct(indexProduct.offer_id, userCredentials.user_id);
+      setDisableLikeButton(false);
+    }
+  };
+
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  //hanlder for close rating
   const handleClose = () => {
     setOpen(false);
   };
 
-  //format date //
-  const getFormattedDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB");
-  };
+  
+
+  //useEffects
+  useEffect(() => {
+    getReactedProducts();
+    
+  }, []);
 
   return (
     <Fragment>
@@ -70,13 +211,79 @@ const Rating = (store) => {
                         {getFormattedDate(indexProduct.entry_date)} {", Likes "}
                         {indexProduct.likes} {", Dislikes "}
                         {indexProduct.dislikes} {", Σε απόθεμα: "}
-                        <ReactedProducts.Provider
-                          value={{ reactedProducts, setReactedProducts }}
-                        >
-                          <ReactionOffer
-                            indexProduct={indexProduct}
-                          />
-                        </ReactedProducts.Provider>
+                        {indexProduct.stock === true ? "NAI" : "OXI"}
+                        {likedProducts.length === 0 ? (
+                          <IconButton
+                            onClick={() => handleClickLike(indexProduct)}
+                          >
+                            <ThumbUpOutlinedIcon />
+                          </IconButton>
+                        ) : likedProducts.find(
+                            ({ offerid, userid, r_type }) =>
+                              offerid === indexProduct.offer_id &&
+                              userid === userCredentials.user_id &&
+                              r_type === false
+                          ) ? (
+                          <IconButton
+                            onClick={() => handleClickLike(indexProduct)}
+                            disabled={disableLikeButton}
+                          >
+                            <ThumbUpOutlinedIcon />
+                          </IconButton>
+                        ) : likedProducts.find(
+                            ({ offerid, userid, r_type }) =>
+                              offerid === indexProduct.offer_id &&
+                              userid === userCredentials.user_id &&
+                              r_type === true
+                          ) ? (
+                          <IconButton
+                            onClick={() => handleClickLike(indexProduct)}
+                          >
+                            <ThumbUpOutlinedIcon color={"success"} />
+                          </IconButton>
+                        ) : (
+                          <IconButton
+                            onClick={() => handleClickLike(indexProduct)}
+                          >
+                            <ThumbUpOutlinedIcon />
+                          </IconButton>
+                        )}
+                        {likedProducts.length === 0 ? (
+                          <IconButton
+                            onClick={() => handleClickDislike(indexProduct)}
+                          >
+                            <ThumbDownOffAltOutlinedIcon />
+                          </IconButton>
+                        ) : likedProducts.find(
+                            ({ offerid, userid, r_type }) =>
+                              offerid === indexProduct.offer_id &&
+                              userid === userCredentials.user_id &&
+                              r_type === true
+                          ) ? (
+                          <IconButton
+                            onClick={() => handleClickDislike(indexProduct)}
+                            disabled={disableUnlikeButton}
+                          >
+                            <ThumbDownOffAltOutlinedIcon />
+                          </IconButton>
+                        ) : likedProducts.find(
+                            ({ offerid, userid, r_type }) =>
+                              offerid === indexProduct.offer_id &&
+                              userid === userCredentials.user_id &&
+                              r_type === false
+                          ) ? (
+                          <IconButton
+                            onClick={() => handleClickDislike(indexProduct)}
+                          >
+                            <ThumbDownOffAltOutlinedIcon color={"error"} />
+                          </IconButton>
+                        ) : (
+                          <IconButton
+                            onClick={() => handleClickDislike(indexProduct)}
+                          >
+                            <ThumbDownOffAltOutlinedIcon />
+                          </IconButton>
+                        )}
                         <br />
                       </p>
                     )
