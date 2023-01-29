@@ -139,6 +139,33 @@ const SubmitOffer = (store) => {
     getProducts();
   }, []);
 
+  
+   //format date
+  const getFormattedDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-CA");
+  };
+
+  const getToday = () => {
+    const current = new Date();
+    setSubmitOffer({
+      ...submitOffer,
+      date: current
+    });
+    console.log("submitOffer.date = " + submitOffer.date);
+  };
+
+  //useEffects
+  useEffect(() => {
+    getProducts();
+    console.log(submitOffer);
+  }, []);
+
+  useEffect(() => {
+    getToday();
+    console.log("useeffect");
+  }, []);
+  
   return (
     <Fragment>
       <Button
