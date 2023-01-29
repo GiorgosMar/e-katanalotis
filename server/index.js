@@ -539,14 +539,22 @@ app.delete("/deleteStore", async (req, res) => {
 //chart1
 app.get("/numOfOffers", async (req, res) => {
   try {
-    const { offerDate } = req.query;
-    console.log(offerDate);
+    const { month } = req.query;
+    console.log("month = "+ month);
+    const offerss = await pool.query(
+      "select * from offer where date_trunc('month', entry_date) = $1",
+      [month]
+      );
+      console.log(offerss.rows.length);
+  if(offerss.rows.length !== 0){
     const countOffers = await pool.query(
-      "SELECT COUNT(*) FROM offer WHERE entry_date = $1;",
-      [offerDate]
+      "select DATE_TRUNC ('day', entry_date) AS date, COUNT(offer_id) AS count FROM offer where date_trunc('month', entry_date) = $1 GROUP BY DATE_TRUNC('day', entry_date)",
+      [month]
     );
-    
-    res.json(countOffers.rows[0].count);
+    res.json(countOffers.rows);
+  }else{
+    res.status(400).json({ message: "no offers in this month" });
+  }  
   } catch (err) {
     console.log(err.message);
   }
@@ -555,4 +563,6 @@ app.get("/numOfOffers", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
 });
+
+
 
