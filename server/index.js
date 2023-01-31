@@ -536,21 +536,33 @@ app.delete("/deleteStore", async (req, res) => {
 });
 
 //charts
-//chart1
+
+//chart1, επιστρεφει την ημερα του μηνα σε νουμερο και τον αριθμο των προσφορων που μοηκαν αυτη την ημερα
 app.get("/numOfOffers", async (req, res) => {
   try {
-    const { month } = req.query;
-    console.log("month = "+ month);
+    const { month, year } = req.query;
+    const  curr_month = year+"-"+month+"-01";
+
     const offerss = await pool.query(
       "select * from offer where date_trunc('month', entry_date) = $1",
-      [month]
+      [curr_month]
       );
-      console.log(offerss.rows.length);
+
   if(offerss.rows.length !== 0){
     const countOffers = await pool.query(
-      "select DATE_TRUNC ('day', entry_date) AS date, COUNT(offer_id) AS count FROM offer where date_trunc('month', entry_date) = $1 GROUP BY DATE_TRUNC('day', entry_date)",
-      [month]
+      "select DATE_TRUNC('day', entry_date) AS date, COUNT(offer_id) AS count FROM offer where date_trunc('month', entry_date) = $1 GROUP BY DATE_TRUNC('day', entry_date) ORDER BY date ASC;",
+      [curr_month]
     );
+    
+    let i=0;
+       while(i < countOffers.rows.length){
+        const thedate = countOffers.rows[i].date;
+        const dayObj = new Date(thedate);
+        const dayNum = dayObj.getDate();
+        countOffers.rows[i].date = dayNum;
+        i++;
+       }
+
     res.json(countOffers.rows);
   }else{
     res.status(400).json({ message: "no offers in this month" });
@@ -559,6 +571,7 @@ app.get("/numOfOffers", async (req, res) => {
     console.log(err.message);
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
