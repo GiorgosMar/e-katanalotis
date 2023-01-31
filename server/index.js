@@ -535,9 +535,9 @@ app.delete("/deleteStore", async (req, res) => {
   }
 });
 
-//charts
+//______________________________________charts___________________________________________
 
-//chart1, επιστρεφει την ημερα του μηνα σε νουμερο και τον αριθμο των προσφορων που μοηκαν αυτη την ημερα
+//chart1, επιστρεφει την ημερα του μηνα σε νουμερο και τον αριθμο των προσφορων που μπηκαν αυτη την ημερα
 app.get("/numOfOffers", async (req, res) => {
   try {
     const { month, year } = req.query;
@@ -562,8 +562,53 @@ app.get("/numOfOffers", async (req, res) => {
         countOffers.rows[i].date = dayNum;
         i++;
        }
+    i = 0;
+    let j = 0;
+    let exists = false;
+    let dayz = 0;
+    console.log("month = "+ month);
+      if (month == 2) {
+                dayz = 28;
+      }else if (month == 4 || month == 6 || month == 9 || month == 11) {
+                dayz = 30;
+      }else {
+                dayz = 31;
+      }
+      console.log("dayz = "+ dayz);
+    while(i < dayz){
+      j = 0;
+      while(j < countOffers.rows.length){
+        const daynum = countOffers.rows[j].date;
+        if(daynum === i+1){
+          j++;
+          exists = true;
+          break;
+        }else{
+          exists = false;
+          j++;
+        }
+      }
+      if(exists === false){
+        countOffers.rows.push({"date": i+1, "count": "0"});
+      }
+      i++;
+    }
 
-    res.json(countOffers.rows);
+    const countOffer = countOffers.rows.sort((a, b) => {
+      if (a.date < b.date) {
+        return -1;
+      }
+    });
+    console.log(countOffer);
+     let countOfferr = [];
+     for(i=0; i<countOffer.length; i++){
+      let offerNum = countOffers.rows[i].count;
+      countOfferr.push(offerNum);
+     }
+     console.log(countOfferr);
+
+    res.json(countOfferr);
+    
   }else{
     res.status(400).json({ message: "no offers in this month" });
   }  
