@@ -580,19 +580,13 @@ app.get("/getProductOffersFromCategories", async (req, res) => {
 
     //Here we take the average price from the price history table for the products on the specified category and entry_date and its respective new price
     const priceInfo = await pool.query(
-      "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category = $1 and o.entry_date = $2  group by price_history.price_log_id, o.new_price;",
+      "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and o.entry_date = $2  group by price_history.price_log_id, o.new_price;",
       [categoryId, entryDate]
     );
 
-    //Check if there is price history for the product
-    if (priceInfo.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "This product has no price history" });
-    }
-
     let i = 0;
     let sumDiscount = 0;
+    let avgDiscount = 0;
     while (i < priceInfo.rows.length) {
       console.log("hi");
       sumDiscount +=
@@ -602,17 +596,21 @@ app.get("/getProductOffersFromCategories", async (req, res) => {
       i++;
       console.log(sumDiscount);
     }
-    const avgDiscount = sumDiscount / priceInfo.rows.length;
-    const roundAvg = Math.round(avgDiscount);
-    res.json(roundAvg);
+
+    if (priceInfo.rows.length === 0) {
+      return res.json(avgDiscount);
+    } else {
+      avgDiscount = sumDiscount / priceInfo.rows.length;
+      const roundAvg = Math.round(avgDiscount);
+      return res.json(roundAvg);
+    }
   } catch (error) {
     console.log(error.message);
   }
 });
 
-
 //This gets the average percentage of discount for a certain day if subacategory and category is defined  
-app.get("/getProductOffersFromSubategories", async (req, res) => {
+app.get("/getProductOffersFromSubcategories", async (req, res) => {
   try {
     const { categoryId, subcategoryId, entryDate } = req.query;
 
@@ -622,15 +620,9 @@ app.get("/getProductOffersFromSubategories", async (req, res) => {
       [categoryId, subcategoryId, entryDate]
     );
 
-    //Check if there is price history for the product
-    if (priceInfo.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "This product has no price history" });
-    }
-
     let i = 0;
     let sumDiscount = 0;
+    let avgDiscount = 0;
     while (i < priceInfo.rows.length) {
       console.log("hi");
       sumDiscount +=
@@ -640,13 +632,19 @@ app.get("/getProductOffersFromSubategories", async (req, res) => {
       i++;
       console.log(sumDiscount);
     }
-    const avgDiscount = sumDiscount / priceInfo.rows.length;
-    const roundAvg = Math.round(avgDiscount);
-    res.json(roundAvg);
+
+    if (priceInfo.rows.length === 0) {
+      return res.json(avgDiscount);
+    } else {
+      avgDiscount = sumDiscount / priceInfo.rows.length;
+      const roundAvg = Math.round(avgDiscount);
+      return res.json(roundAvg);
+    }
   } catch (error) {
     console.log(error.message);
   }
 });
+
 
 
 
