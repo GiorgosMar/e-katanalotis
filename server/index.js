@@ -572,6 +572,83 @@ app.get("/numOfOffers", async (req, res) => {
   }
 });
 
+//chart2 
+//This gets the average percentage of discount for a certain day if only category is defined 
+app.get("/getProductOffersFromCategories", async (req, res) => {
+  try {
+    const { categoryId, entryDate } = req.query;
+
+    //Here we take the average price from the price history table for the products on the specified category and entry_date and its respective new price
+    const priceInfo = await pool.query(
+      "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category = $1 and o.entry_date = $2  group by price_history.price_log_id, o.new_price;",
+      [categoryId, entryDate]
+    );
+
+    //Check if there is price history for the product
+    if (priceInfo.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "This product has no price history" });
+    }
+
+    let i = 0;
+    let sumDiscount = 0;
+    while (i < priceInfo.rows.length) {
+      console.log("hi");
+      sumDiscount +=
+        ((priceInfo.rows[i].avg_price - priceInfo.rows[i].new_price) /
+          priceInfo.rows[i].avg_price) *
+        100;
+      i++;
+      console.log(sumDiscount);
+    }
+    const avgDiscount = sumDiscount / priceInfo.rows.length;
+    const roundAvg = Math.round(avgDiscount);
+    res.json(roundAvg);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+
+//This gets the average percentage of discount for a certain day if subacategory and category is defined  
+app.get("/getProductOffersFromSubategories", async (req, res) => {
+  try {
+    const { categoryId, subcategoryId, entryDate } = req.query;
+
+    //Here we take the average price from the price history table for the products on the specified category,subcategory and entry_date and its respective new price
+    const priceInfo = await pool.query(
+      "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and p.subcategory = $2 and o.entry_date = $3  group by price_history.price_log_id, o.new_price;",
+      [categoryId, subcategoryId, entryDate]
+    );
+
+    //Check if there is price history for the product
+    if (priceInfo.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "This product has no price history" });
+    }
+
+    let i = 0;
+    let sumDiscount = 0;
+    while (i < priceInfo.rows.length) {
+      console.log("hi");
+      sumDiscount +=
+        ((priceInfo.rows[i].avg_price - priceInfo.rows[i].new_price) /
+          priceInfo.rows[i].avg_price) *
+        100;
+      i++;
+      console.log(sumDiscount);
+    }
+    const avgDiscount = sumDiscount / priceInfo.rows.length;
+    const roundAvg = Math.round(avgDiscount);
+    res.json(roundAvg);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
