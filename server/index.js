@@ -565,8 +565,8 @@ app.get("/numOfOffers", async (req, res) => {
     i = 0;
     let j = 0;
     let exists = false;
+    
     let dayz = 0;
-    console.log("month = "+ month);
       if (month == 2) {
                 dayz = 28;
       }else if (month == 4 || month == 6 || month == 9 || month == 11) {
@@ -589,7 +589,7 @@ app.get("/numOfOffers", async (req, res) => {
         }
       }
       if(exists === false){
-        countOffers.rows.push({"date": i+1, "count": "0"});
+        countOffers.rows.push({"date": i+1, "count": 0});
       }
       i++;
     }
@@ -602,7 +602,7 @@ app.get("/numOfOffers", async (req, res) => {
     console.log(countOffer);
      let countOfferr = [];
      for(i=0; i<countOffer.length; i++){
-      let offerNum = countOffers.rows[i].count;
+      let offerNum =Number(countOffers.rows[i].count);
       countOfferr.push(offerNum);
      }
      console.log(countOfferr);
