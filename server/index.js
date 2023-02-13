@@ -100,10 +100,54 @@ app.put("/updateUserScoreOnNewOffer", async (req, res) => {
   }
 });
 
-app.get("/offerProducts", async (req, res) => {
+app.put("/offerProducts", async (req, res) => {
   try {
+    const newOffer = await pool.query(
+      "SELECT new_price, offer_id, productID, userid FROM offer ORDER BY offer_id ASC;"
+    );
+
+    let i = 0;
+    while (newOffer.rows[i] !== undefined) {
+      //5ai
+      const recentPrice = await pool.query(
+        "SELECT * FROM price_history WHERE price_log_id = $1 ORDER BY date DESC LIMIT 1;",
+        [newOffer.rows[i].productid]
+      );
+
+      //5aii
+      const averagePrice = await pool.query(
+        "SELECT AVG(price) as avg_price FROM price_history WHERE price_log_id = $1;",
+        [newOffer.rows[i].productid]
+      );
+
+      if (recentPrice.rows.length === 0 || averagePrice.rows.length === 0) {
+        i++;
+        continue;
+      }
+
+      //Here it checks if the new price is lower by 20% from the last day price or the average last week price
+      const isGoodDealAverage =
+        newOffer.rows[i].new_price < averagePrice.rows[0].avg_price * 0.8;
+      const isGoodDeal =
+        newOffer.rows[i].new_price < recentPrice.rows[0].price * 0.8;
+      const offerId = newOffer.rows[i].offer_id;
+
+      if (!isGoodDeal && !isGoodDealAverage) {
+        const setValid7 = await pool.query(
+          "UPDATE offer SET valid = false WHERE offer_id = $1 AND entry_date < (now() - interval '7 days ');",
+          [offerId]
+        );
+        //const set_valid = setValid.rows;
+      } else {
+        const setValid14 = await pool.query(
+          "UPDATE offer SET valid = false WHERE offer_id = $1 AND entry_date < (now() - interval '14 days ');",
+          [offerId]
+        );
+      }
+      i++;
+    }
     const offerProducts = await pool.query(
-      "SELECT * FROM products INNER JOIN offer ON products.product_id = offer.productID INNER JOIN store ON offer.storeID = store.id;"
+      "SELECT * FROM products INNER JOIN offer ON products.product_id = offer.productID INNER JOIN store ON offer.storeID = store.id where valid = true;"
     );
     res.json(offerProducts.rows);
   } catch (err) {
@@ -207,7 +251,7 @@ app.get("/checkReaction", async (req, res) => {
 });
 
 app.post("/addReaction", async (req, res) => {
-  const { offerid, userid, like } = req.body;
+  const { offerid, userid, like, date } = req.body;
   try {
     const checkreact = await pool.query(
       "SELECT * FROM reaction_history WHERE offerid=$1 AND userid=$2",
@@ -215,8 +259,8 @@ app.post("/addReaction", async (req, res) => {
     );
     if (checkreact.rows.length === 0) {
       const addLikedProduct = await pool.query(
-        "INSERT INTO reaction_history (offerid, userid, r_type) values($1, $2, $3) RETURNING *",
-        [offerid, userid, like]
+        "INSERT INTO reaction_history (offerid, userid, r_type, react_date) values($1, $2, $3, $4) RETURNING *",
+        [offerid, userid, like, date]
       );
 
       return res.status(200).json(addLikedProduct.rows);
@@ -299,20 +343,22 @@ app.get("/updatedUserCreds", async (req, res) => {
 //Here we update the user's password
 app.put("/updateUserPassword", async (req, res) => {
   try {
-    const { userId,newConfPassword, newPassword, password } = req.body;
+    const { userId, newConfPassword, newPassword, password } = req.body;
     const getUserPassword = await pool.query(
       "SELECT user_password FROM users WHERE user_id = $1",
       [userId]
     );
     const userPassword = getUserPassword.rows[0];
-    if(password === userPassword.user_password){
-    const updatePassword = await pool.query(
-      "UPDATE users SET user_password = $1 , user_conf_password=$2 WHERE user_id = $3",
-      [newPassword,newConfPassword, userId]
-    );
-    res.json(updatePassword.rows);
-    }else{
-      return res.status(404).json({ message: "Λάθος τωρινός κωδίκος πρόσβασης" })
+    if (password === userPassword.user_password) {
+      const updatePassword = await pool.query(
+        "UPDATE users SET user_password = $1 , user_conf_password=$2 WHERE user_id = $3",
+        [newPassword, newConfPassword, userId]
+      );
+      res.json(updatePassword.rows);
+    } else {
+      return res
+        .status(404)
+        .json({ message: "Λάθος τωρινός κωδίκος πρόσβασης" });
     }
   } catch (error) {
     console.log(err.message);
@@ -328,14 +374,16 @@ app.put("/updateUsername", async (req, res) => {
       [userId]
     );
     const userPassword = getUserPassword.rows[0];
-    if(password === userPassword.user_password){
+    if (password === userPassword.user_password) {
       const updateUsername = await pool.query(
         "UPDATE users SET user_name = $1  WHERE user_id = $2",
         [newUsername, userId]
       );
       res.json(updateUsername.rows);
-    }else{
-      return res.status(404).json({ message: "Λάθος τωρινός κωδίκος πρόσβασης" })
+    } else {
+      return res
+        .status(404)
+        .json({ message: "Λάθος τωρινός κωδίκος πρόσβασης" });
     }
   } catch (error) {
     console.log(err.message);
@@ -345,37 +393,37 @@ app.put("/updateUsername", async (req, res) => {
 app.get("/showStats", async (req, res) => {
   try {
     const { userid } = req.query;
-    
+
     //This gets the reactions that a user has done: The reaction date, the reaction type, the product name and the name of the store
     const allReactions = await pool.query(
       "SELECT rh.react_date, rh.r_type, st.name, pr.product_name FROM reaction_history rh JOIN offer o ON rh.offerid = o.offer_id JOIN store st ON o.storeID = st.id JOIN products pr ON o.productID = pr.product_id WHERE rh.userid = $1;",
       [userid]
     );
-    
+
     //This gets the last entry of tokens for the user and also the total of tokens he has collected
     const userTokens = await pool.query(
       "SELECT num_tokens_entered, SUM(num_tokens_entered) OVER (PARTITION BY user_token) as total_tokens FROM tokens WHERE user_token = $1 ORDER BY entered_date DESC LIMIT 1;",
       [userid]
     );
-    
+
     //This gets the total score of the user and also the score that he has collected this month
     const userScore = await pool.query(
       "SELECT score,score_month FROM users WHERE user_id = $1",
       [userid]
     );
-    
+
     //This gets for the logged user his submitted offers. The product name , the store ,the entry date and also likes and dislikes
     const offersSubmitted = await pool.query(
       "SELECT offer.entry_date, offer.likes, offer.dislikes, store.name, products.product_name FROM offer JOIN store ON offer.storeID = store.id JOIN products ON offer.productID = products.product_id WHERE offer.userid = $1;",
       [userid]
     );
-    
-    //Here we pass into const the rows of the above queries 
+
+    //Here we pass into const the rows of the above queries
     const reactions = allReactions.rows;
     const tokens = userTokens.rows;
     const score = userScore.rows;
     const offers = offersSubmitted.rows;
-    
+
     //And return all in one JSON
     res.json({ reactions, tokens, score, offers });
   } catch (err) {
@@ -383,8 +431,6 @@ app.get("/showStats", async (req, res) => {
   }
 });
 
-
-//-----------------------------------ADMIN-----------------------------------------//
 app.get("/getCategories", async (req, res) => {
   try {
     const allCategories = await pool.query("SELECT * FROM categories;");
@@ -398,7 +444,7 @@ app.get("/getSubcategories", async (req, res) => {
   try {
     const { parentCategory } = req.query;
     const subgategories = await pool.query(
-      "SELECT * FROM subcategories WHERE parent_category = $1; ",
+      "SELECT * FROM subcategories WHERE parent_category_id = $1; ",
       [parentCategory]
     );
     res.json(subgategories.rows);
@@ -446,12 +492,11 @@ app.delete("/deleteProduct", async (req, res) => {
   }
 });
 
-
 //This gets all the users ordered by their highest score
 app.get("/userLeaderBoard", async (req, res) => {
   try {
     const leaderBoard = await pool.query(
-      "SELECT users.user_name,users.score, SUM(tokens.num_tokens_entered) as total_tokens, (SELECT num_tokens_entered FROM tokens WHERE tokens.user_token = users.user_id AND entered_date = (SELECT MAX(entered_date) FROM tokens WHERE tokens.user_token = users.user_id)) as latest_num_tokens_entered FROM users LEFT JOIN tokens ON users.user_id = tokens.user_token GROUP BY users.user_id, users.user_name ORDER BY users.score desc;"
+      "SELECT users.user_name,users.score, SUM(tokens.num_tokens_entered) as total_tokens, (SELECT num_tokens_entered FROM tokens WHERE tokens.user_token = users.user_id  AND entered_date = (SELECT MAX(entered_date) FROM tokens WHERE tokens.user_token = users.user_id) limit 1) as latest_num_tokens_entered FROM users LEFT JOIN tokens ON users.user_id = tokens.user_token WHERE user_role =0 GROUP BY users.user_id, users.user_name ORDER BY users.score desc;"
     );
     res.json(leaderBoard.rows);
   } catch (err) {
@@ -459,28 +504,25 @@ app.get("/userLeaderBoard", async (req, res) => {
   }
 });
 
-
 //get store info for AUTOCOMPLETE
-app.get("/getStoreInfo",  async (req, res) => {
-try {
-  const {storeId} = req.query;
-  const getStore = await pool.query(
-    "SELECT name, shop, ST_X(location) AS lon, ST_Y(location) AS lat FROM store WHERE id = $1;",
-    [storeId]
-  );
-  res.json(getStore.rows);
-
+app.get("/getStoreInfo", async (req, res) => {
+  try {
+    const { storeid } = req.query;
+    const getStore = await pool.query(
+      "SELECT name, shop, ST_X(location) AS lon, ST_Y(location) AS lat FROM store WHERE id = $1;",
+      [storeid]
+    );
+    res.json(getStore.rows);
   } catch (err) {
     console.log(err.message);
   }
-
 });
 
 //add store
 app.post("/addStore", async (req, res) => {
   try {
     const { nameStore, shop, lat, lon } = req.body;
-    const store_location = "POINT ("+lon+" "+lat+")";
+    const store_location = "POINT (" + lon + " " + lat + ")";
     const addStore = await pool.query(
       "INSERT INTO store (name, shop, location) values($1, $2, $3) RETURNING *",
       [nameStore, shop, store_location]
@@ -492,13 +534,23 @@ app.post("/addStore", async (req, res) => {
 });
 
 //update store
+
 app.put("/updateStore", async (req, res) => {
   try {
     const { storeId, newStoreName, shop, lat, lon } = req.body;
-    const store_location = "POINT ("+lon+" "+lat+")";
+    let storeName = newStoreName;
+    const store_location = "POINT (" + lon + " " + lat + ")";
+
+    if (newStoreName === "") {
+      const getStore = await pool.query(
+        "SELECT name FROM store WHERE id = $1;",
+        [storeId]
+      );
+      storeName = getStore.rows[0].name;
+    }
     const updateStore = await pool.query(
       "UPDATE store SET name = $1, shop = $2, location = $3 WHERE id = $4;",
-      [newStoreName, shop, store_location, storeId]
+      [storeName, shop, store_location, storeId]
     );
 
     res.json(updateStore.rows);
@@ -506,29 +558,13 @@ app.put("/updateStore", async (req, res) => {
     console.log(err.message);
   }
 });
-
-//delete offer (sets valid=false)
-app.put("/deleteOffer", async (req, res) => {
-  try {
-    const { offer_id } = req.body;
-    const updateStore = await pool.query(
-      "UPDATE offer SET valid = false WHERE offer_id = $1;",
-      [offer_id]
-    );
-    res.json(updateStore.rows);
-  } catch (err) {
-    console.log(err.message);
-  }
-});
-
 //delete store
 app.delete("/deleteStore", async (req, res) => {
   try {
-    const { store_id } = req.body;
-    const deleteStore = await pool.query(
-      "DELETE FROM store WHERE id = $1;", 
-      [store_id]
-    );
+    const { storeid } = req.body;
+    const deleteStore = await pool.query("DELETE FROM store WHERE id = $1;", [
+      storeid,
+    ]);
     res.json(deleteStore.rows[0]);
   } catch (err) {
     console.log(err.message);
@@ -541,161 +577,300 @@ app.delete("/deleteStore", async (req, res) => {
 app.get("/numOfOffers", async (req, res) => {
   try {
     const { month, year } = req.query;
-    const  curr_month = year+"-"+month+"-01";
+    const curr_month = year + "-" + month + "-01";
 
     const offerss = await pool.query(
       "select * from offer where date_trunc('month', entry_date) = $1",
       [curr_month]
+    );
+
+    if (offerss.rows.length !== 0) {
+      const countOffers = await pool.query(
+        "select DATE_TRUNC('day', entry_date) AS date, COUNT(offer_id) AS count FROM offer where date_trunc('month', entry_date) = $1 GROUP BY DATE_TRUNC('day', entry_date) ORDER BY date ASC;",
+        [curr_month]
       );
 
-  if(offerss.rows.length !== 0){
-    const countOffers = await pool.query(
-      "select DATE_TRUNC('day', entry_date) AS date, COUNT(offer_id) AS count FROM offer where date_trunc('month', entry_date) = $1 GROUP BY DATE_TRUNC('day', entry_date) ORDER BY date ASC;",
-      [curr_month]
-    );
-    
-    let i=0;
-       while(i < countOffers.rows.length){
+      let i = 0;
+      while (i < countOffers.rows.length) {
         const thedate = countOffers.rows[i].date;
         const dayObj = new Date(thedate);
         const dayNum = dayObj.getDate();
         countOffers.rows[i].date = dayNum;
         i++;
-       }
-    i = 0;
-    let j = 0;
-    let exists = false;
-    
-    let dayz = 0;
+      }
+      i = 0;
+      let j = 0;
+      let exists = false;
+
+      let dayz = 0;
       if (month == 2) {
-                dayz = 28;
-      }else if (month == 4 || month == 6 || month == 9 || month == 11) {
-                dayz = 30;
-      }else {
-                dayz = 31;
+        dayz = 28;
+      } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+        dayz = 30;
+      } else {
+        dayz = 31;
       }
-      console.log("dayz = "+ dayz);
-    while(i < dayz){
-      j = 0;
-      while(j < countOffers.rows.length){
-        const daynum = countOffers.rows[j].date;
-        if(daynum === i+1){
-          j++;
-          exists = true;
-          break;
-        }else{
-          exists = false;
-          j++;
+      while (i < dayz) {
+        j = 0;
+        while (j < countOffers.rows.length) {
+          const daynum = countOffers.rows[j].date;
+          if (daynum === i + 1) {
+            j++;
+            exists = true;
+            break;
+          } else {
+            exists = false;
+            j++;
+          }
         }
+        if (exists === false) {
+          countOffers.rows.push({ date: i + 1, count: 0 });
+        }
+        i++;
       }
-      if(exists === false){
-        countOffers.rows.push({"date": i+1, "count": 0});
+      const countOffer = countOffers.rows.sort((a, b) => {
+        if (a.date < b.date) {
+          return -1;
+        }
+      });
+      let countOfferr = [];
+      for (i = 0; i < countOffer.length; i++) {
+        let offerNum = Number(countOffers.rows[i].count);
+        countOfferr.push(offerNum);
       }
-      i++;
+      res.json(countOfferr);
+    } else {
+      res.status(400).json({ message: "no offers in this month" });
     }
-
-    const countOffer = countOffers.rows.sort((a, b) => {
-      if (a.date < b.date) {
-        return -1;
-      }
-    });
-    console.log(countOffer);
-     let countOfferr = [];
-     for(i=0; i<countOffer.length; i++){
-      let offerNum =Number(countOffers.rows[i].count);
-      countOfferr.push(offerNum);
-     }
-     console.log(countOfferr);
-
-    res.json(countOfferr);
-    
-  }else{
-    res.status(400).json({ message: "no offers in this month" });
-  }  
   } catch (err) {
     console.log(err.message);
   }
 });
 
-//chart2 
-//This gets the average percentage of discount for a certain day if only category is defined 
+//chart2
+//This gets the average percentage of discount for a certain day if only category is defined
 app.get("/getProductOffersFromCategories", async (req, res) => {
   try {
-    const { categoryId, entryDate } = req.query;
+    const { categoryId, month, year, page } = req.query;
+    const limit = 7;
 
-    //Here we take the average price from the price history table for the products on the specified category and entry_date and its respective new price
-    const priceInfo = await pool.query(
-      "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and o.entry_date = $2  group by price_history.price_log_id, o.new_price;",
-      [categoryId, entryDate]
-    );
+    const startIndex = (page - 1) * limit + 1;
+    const endIndex = page * limit;
+    let priceInfo;
+    if (page < 5) {
+      priceInfo = await pool.query(
+        "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and o.entry_date BETWEEN date ($4 || '-' || $5 || '-' || $2) AND date ($4 || '-' || $5 || '-' || $3) group by price_history.price_log_id, o.new_price;",
+        [categoryId, startIndex, endIndex, year, month]
+      );
+    } else if (page === 5) {
+      if (
+        month === 1 ||
+        month === 3 ||
+        month === 5 ||
+        month === 7 ||
+        month === 8 ||
+        month === 10 ||
+        month === 12
+      ) {
+        endIndex = startIndex + 2;
+        priceInfo = await pool.query(
+          "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and o.entry_date BETWEEN date ($4 || '-' || $5 || '-' || $2) AND date ($4 || '-' || $5 || '-' || $3) group by price_history.price_log_id, o.new_price;",
+          [categoryId, startIndex, endIndex, year, month]
+        );
+      } else if (month === 2 && year % 4 === 0) {
+        endIndex = startIndex;
+        priceInfo = await pool.query(
+          "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and o.entry_date BETWEEN date ($4 || '-' || $5 || '-' || $2) AND date ($4 || '-' || $5 || '-' || $3) group by price_history.price_log_id, o.new_price;",
+          [categoryId, startIndex, endIndex, year, month]
+        );
+      } else {
+        endIndex = startIndex + 1;
+        priceInfo = await pool.query(
+          "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and o.entry_date BETWEEN date ($4 || '-' || $5 || '-' || $2) AND date ($4 || '-' || $5 || '-' || $3) group by price_history.price_log_id, o.new_price;",
+          [categoryId, startIndex, endIndex, year, month]
+        );
+      }
+    }
 
-    let i = 0;
-    let sumDiscount = 0;
     let avgDiscount = 0;
-    while (i < priceInfo.rows.length) {
-      console.log("hi");
-      sumDiscount +=
-        ((priceInfo.rows[i].avg_price - priceInfo.rows[i].new_price) /
-          priceInfo.rows[i].avg_price) *
-        100;
-      i++;
-      console.log(sumDiscount);
+    let roundAvgs = [];
+
+    while (startIndex <= endIndex) {
+      let i = 0;
+      let sumDiscount = 0;
+      while (i < priceInfo.rows.length) {
+        if (
+          priceInfo.rows.entry_date ===
+          year + "-" + month + "-" + startIndex
+        ) {
+          sumDiscount +=
+            ((priceInfo.rows[i].avg_price - priceInfo.rows[i].new_price) /
+              priceInfo.rows[i].avg_price) *
+            100;
+        }
+        i++;
+      }
+      avgDiscount = sumDiscount / priceInfo.rows.length;
+      let roundAvg = Math.round(avgDiscount);
+      roundAvgs.push(roundAvg);
+      startIndex++;
     }
 
     if (priceInfo.rows.length === 0) {
-      return res.json(avgDiscount);
+      return res.status(400).json({ message: "no offers in this month" });
+    } else if (
+      month === 1 ||
+      month === 3 ||
+      month === 5 ||
+      month === 7 ||
+      month === 8 ||
+      month === 10 ||
+      month === 12
+    ) {
+      const data = {
+        dataforchart: roundAvgs,
+        countPages: 31 / limit,
+        pageNumber: page / 1,
+      };
+      return res.json(data);
+    } else if (month === 2 && year % 4 !== 0) {
+      const data = {
+        dataforchart: roundAvgs,
+        countPages: 28 / limit,
+        pageNumber: page / 1,
+      };
+      return res.json(data);
+    } else if (month === 2 && year % 4 === 0) {
+      const data = {
+        dataforchart: roundAvgs,
+        countPages: 29 / limit,
+        pageNumber: page / 1,
+      };
+      return res.json(data);
     } else {
-      avgDiscount = sumDiscount / priceInfo.rows.length;
-      const roundAvg = Math.round(avgDiscount);
-      return res.json(roundAvg);
+      const data = {
+        dataforchart: roundAvgs,
+        countPages: 30 / limit,
+        pageNumber: page / 1,
+      };
+      return res.json(data);
     }
   } catch (error) {
     console.log(error.message);
   }
 });
 
-//This gets the average percentage of discount for a certain day if subacategory and category is defined  
-app.get("/getProductOffersFromSubcategories", async (req, res) => {
+//delete offer (sets valid=false)
+app.put("/deleteOffer", async (req, res) => {
   try {
-    const { categoryId, subcategoryId, entryDate } = req.query;
-
-    //Here we take the average price from the price history table for the products on the specified category,subcategory and entry_date and its respective new price
-    const priceInfo = await pool.query(
-      "SELECT AVG(price) as avg_price , price_log_id, o.new_price  FROM price_history join products p on price_history.price_log_id =p.product_id join offer o on o.productid = p.product_id  WHERE p.category =$1  and p.subcategory = $2 and o.entry_date = $3  group by price_history.price_log_id, o.new_price;",
-      [categoryId, subcategoryId, entryDate]
+    const { offerid } = req.body;
+    const updateStore = await pool.query(
+      "UPDATE offer SET valid = false WHERE offer_id = $1;",
+      [offerid]
     );
-
-    let i = 0;
-    let sumDiscount = 0;
-    let avgDiscount = 0;
-    while (i < priceInfo.rows.length) {
-      console.log("hi");
-      sumDiscount +=
-        ((priceInfo.rows[i].avg_price - priceInfo.rows[i].new_price) /
-          priceInfo.rows[i].avg_price) *
-        100;
-      i++;
-      console.log(sumDiscount);
-    }
-
-    if (priceInfo.rows.length === 0) {
-      return res.json(avgDiscount);
-    } else {
-      avgDiscount = sumDiscount / priceInfo.rows.length;
-      const roundAvg = Math.round(avgDiscount);
-      return res.json(roundAvg);
-    }
-  } catch (error) {
-    console.log(error.message);
+    res.json(updateStore.rows);
+  } catch (err) {
+    console.log(err.message);
   }
 });
 
+async function countUsers() {
+  // Get number of users
+  const query = "SELECT COUNT(*) as count FROM users;";
+  const res = await pool.query(query);
+  const numUsers = +res.rows[0].count;
 
+  return numUsers;
+}
 
+async function refundTokens(tokensToRefund, numUsers) {
+  if (numUsers !== 0 && !isNaN(tokensToRefund)) {
+    // Calculate amount of tokens to give to each user
+    const tokensPerUser = Math.round(tokensToRefund / numUsers);
+    console.log(tokensPerUser);
+    try {
+      // Insert the token entries for all users
+      const userId = await pool.query("SELECT user_id FROM users;");
+      let i = 0;
+      while (userId.rows[i] !== undefined) {
+        await pool.query(
+          "INSERT INTO tokens (user_token,num_tokens_entered,entered_date) VALUES ($1,$2,now());",
+          [userId.rows[i].user_id, tokensPerUser]
+        );
+        console.log("Inserted for user no " + i);
+        i++;
+      }
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+}
+
+let counterFirst = 0;
+let counterSecond = 1;
+//1 of month
+async function first() {
+  const numUsers = await countUsers();
+  const tokensToRefund = 80 * numUsers;
+  console.log("first");
+  await pool.query("INSERT INTO tokens_to_refund(num_tokens) VALUES ($1);", [
+    tokensToRefund,
+  ]);
+  counterFirst++;
+}
+
+//telos tou mhna
+async function second() {
+  const newNumUsers = await countUsers();
+  const tokensToSplit = await pool.query(
+    "SELECT num_tokens from tokens_to_refund ORDER BY id DESC LIMIT 1;"
+  );
+  console.log(tokensToSplit.rows[0].num_tokens);
+  refundTokens(tokensToSplit.rows[0].num_tokens, newNumUsers);
+  await pool.query("DELETE FROM tokens_to_refund;");
+  counterSecond++;
+}
+
+// async function theLoop() {
+//   let currentDate = new Date();
+
+//   if (currentDate.getSeconds() === 1) {
+//     await pool.query("UPDATE users SET score_month = 0;");
+//     console.log("first function");
+//     first();
+//   }
+//   if (currentDate.getSeconds() === 30) {
+//     if (counterFirst === counterSecond) {
+//       console.log("second function");
+//       second();
+//     }
+//   }
+// }
+
+// setInterval(theLoop, 1000);
+
+async function theLoop() {
+  let currentDate = new Date();
+  //let currentDate = new Date(2023, 1, 15); //for exams
+
+  //if it is first day of the month
+    if(currentDate.getDate() === 1){
+      await pool.query("UPDATE users SET score_month = 0;");
+      console.log("first function");
+      first();
+    }
+    //if it is last day of the month
+    if(currentDate.getDate() === new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()){
+      if(counterFirst === counterSecond){
+        console.log("second function");
+        second();
+      }
+    }
+}
+
+//checks once a day
+setInterval(theLoop, 8640000);
 
 app.listen(PORT, () => {
   console.log(`server started on port ${PORT}`);
 });
-
-
-
