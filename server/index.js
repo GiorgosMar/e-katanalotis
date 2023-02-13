@@ -105,16 +105,17 @@ app.put("/offerProducts", async (req, res) => {
     const newOffer = await pool.query(
       "SELECT new_price, offer_id, productID, userid FROM offer ORDER BY offer_id ASC;"
     );
-
+    
+    //for every existing offer
     let i = 0;
     while (newOffer.rows[i] !== undefined) {
-      //5ai
+      //checks for criteria 5ai 
       const recentPrice = await pool.query(
         "SELECT * FROM price_history WHERE price_log_id = $1 ORDER BY date DESC LIMIT 1;",
         [newOffer.rows[i].productid]
       );
 
-      //5aii
+      //checks for criteria 5aii
       const averagePrice = await pool.query(
         "SELECT AVG(price) as avg_price FROM price_history WHERE price_log_id = $1;",
         [newOffer.rows[i].productid]
@@ -131,14 +132,16 @@ app.put("/offerProducts", async (req, res) => {
       const isGoodDeal =
         newOffer.rows[i].new_price < recentPrice.rows[0].price * 0.8;
       const offerId = newOffer.rows[i].offer_id;
-
+      
       if (!isGoodDeal && !isGoodDealAverage) {
+        //if none of the 5ai, 5aii criteria is true, sets valid = false only if the offer has been submitted for more than a week
         const setValid7 = await pool.query(
           "UPDATE offer SET valid = false WHERE offer_id = $1 AND entry_date < (now() - interval '7 days ');",
           [offerId]
         );
         //const set_valid = setValid.rows;
       } else {
+        //if the offer has expired (2 weeks since the day it was submitted) sets valid = false
         const setValid14 = await pool.query(
           "UPDATE offer SET valid = false WHERE offer_id = $1 AND entry_date < (now() - interval '14 days ');",
           [offerId]
@@ -146,6 +149,7 @@ app.put("/offerProducts", async (req, res) => {
       }
       i++;
     }
+    //shows to user only the offers with valid = true
     const offerProducts = await pool.query(
       "SELECT * FROM products INNER JOIN offer ON products.product_id = offer.productID INNER JOIN store ON offer.storeID = store.id where valid = true;"
     );
@@ -155,6 +159,7 @@ app.put("/offerProducts", async (req, res) => {
   }
 });
 
+//user hits the like button in an offer
 app.put("/offerlike", async (req, res) => {
   try {
     const { updatedlikes } = req.query;
@@ -169,17 +174,21 @@ app.put("/offerlike", async (req, res) => {
       [offerid, userId]
     );
     const existReact = existReaction.rows[0];
+    //
     if (existReact === undefined) {
+      //if user hits the like button to like offer, score of user that submitted the offer is increased by 5
       const updateScore = await pool.query(
         "UPDATE users SET score = score + 5, score_month = score_month + 5 WHERE user_id = $1",
         [userId]
       );
     } else if (existReact.r_type === true) {
+      //if user hits like button to take back the like, score of user that submitted the offer is decreased by 5
       const updateScore = await pool.query(
         "UPDATE users SET score = score - 5, score_month = score_month - 5 WHERE user_id = $1",
         [userId]
       );
     }
+    //update like number of the offer (+1 or -1)
     const likeoffer = await pool.query(
       "UPDATE offer SET likes = $1 WHERE offer_id = $2;",
       [updatedlikes, offerid]
@@ -190,6 +199,7 @@ app.put("/offerlike", async (req, res) => {
   }
 });
 
+//toggles the value of stock (user changes stock)
 app.put("/updateStock", async (req, res) => {
   try {
     const { offerid } = req.body;
@@ -203,6 +213,7 @@ app.put("/updateStock", async (req, res) => {
   }
 });
 
+//if user hits dislike button in an offer
 app.put("/offerdislike", async (req, res) => {
   try {
     const { updateddislikes } = req.query;
@@ -219,7 +230,6 @@ app.put("/offerdislike", async (req, res) => {
     );
 
     const existReact = existReaction.rows[0];
-
     if (existReact === undefined) {
       const updateScore = await pool.query(
         "UPDATE users SET score = score - 1, score_month = score_month - 1 WHERE user_id = $1",
@@ -241,6 +251,7 @@ app.put("/offerdislike", async (req, res) => {
   }
 });
 
+//checks if a user has already reacted to an offer (when they hit the like or dislike button)
 app.get("/checkReaction", async (req, res) => {
   try {
     const check_reaction = await pool.query("SELECT * FROM reaction_history");
@@ -250,6 +261,7 @@ app.get("/checkReaction", async (req, res) => {
   }
 });
 
+//when user reacts to an offer, adds a record in reaction_history table
 app.post("/addReaction", async (req, res) => {
   const { offerid, userid, like, date } = req.body;
   try {
@@ -258,6 +270,7 @@ app.post("/addReaction", async (req, res) => {
       [offerid, userid]
     );
     if (checkreact.rows.length === 0) {
+      //if user has not already reacted to the offer, adds record
       const addLikedProduct = await pool.query(
         "INSERT INTO reaction_history (offerid, userid, r_type, react_date) values($1, $2, $3, $4) RETURNING *",
         [offerid, userid, like, date]
@@ -270,6 +283,7 @@ app.post("/addReaction", async (req, res) => {
   }
 });
 
+//if user takes react back, deletes the corresponding record from reaction_history
 app.delete("/deleteLikedProduct", async (req, res) => {
   try {
     const { offerid, userid } = req.query;
@@ -283,11 +297,11 @@ app.delete("/deleteLikedProduct", async (req, res) => {
   }
 });
 
-//GET ALL Stores
+//GET all Stores
 app.get("/store", async (req, res) => {
   try {
     const { search_value } = req.query;
-
+    
     if (search_value !== undefined) {
       const storeName = await pool.query(
         "SELECT *, ST_X(location) AS longitude, ST_Y(location) AS latitude FROM store LEFT JOIN offer ON store.id = offer.storeID WHERE name=$1;",
@@ -302,11 +316,13 @@ app.get("/store", async (req, res) => {
         storeName.rows[0] !== undefined &&
         storeCategory.rows[0] === undefined
       ) {
+        //if search value has only name, returns all stores with that name
         res.json(storeName.rows);
       } else if (
         storeName.rows[0] === undefined &&
         storeCategory.rows[0] !== undefined
       ) {
+        //if search value has only category, returns all stores of that category
         res.json(storeCategory.rows);
       } else {
         res.json("Not found");
@@ -466,6 +482,7 @@ app.get("/getProductsFromSubcategory", async (req, res) => {
   }
 });
 
+//admin adds new product
 app.post("/insertProduct", async (req, res) => {
   try {
     const { productName, category, subcategory } = req.body;
@@ -479,6 +496,7 @@ app.post("/insertProduct", async (req, res) => {
   }
 });
 
+//admin deletes a product
 app.delete("/deleteProduct", async (req, res) => {
   try {
     const { productId } = req.query;
@@ -492,7 +510,7 @@ app.delete("/deleteProduct", async (req, res) => {
   }
 });
 
-//This gets all the users ordered by their highest score
+//gets all the users ordered by their highest score
 app.get("/userLeaderBoard", async (req, res) => {
   try {
     const leaderBoard = await pool.query(
@@ -518,7 +536,7 @@ app.get("/getStoreInfo", async (req, res) => {
   }
 });
 
-//add store
+//admin adds store
 app.post("/addStore", async (req, res) => {
   try {
     const { nameStore, shop, lat, lon } = req.body;
@@ -533,8 +551,7 @@ app.post("/addStore", async (req, res) => {
   }
 });
 
-//update store
-
+//admin updates store
 app.put("/updateStore", async (req, res) => {
   try {
     const { storeId, newStoreName, shop, lat, lon } = req.body;
@@ -558,7 +575,8 @@ app.put("/updateStore", async (req, res) => {
     console.log(err.message);
   }
 });
-//delete store
+
+//admin deletes store
 app.delete("/deleteStore", async (req, res) => {
   try {
     const { storeid } = req.body;
@@ -573,12 +591,12 @@ app.delete("/deleteStore", async (req, res) => {
 
 //______________________________________charts___________________________________________
 
-//chart1, επιστρεφει την ημερα του μηνα σε νουμερο και τον αριθμο των προσφορων που μπηκαν αυτη την ημερα
+//chart1, επιστρεφει πινακα με ημερα του μηνα και αριθμο προσφορων για την καθε μερα
 app.get("/numOfOffers", async (req, res) => {
   try {
     const { month, year } = req.query;
     const curr_month = year + "-" + month + "-01";
-
+    //gets all offers from a specific month
     const offerss = await pool.query(
       "select * from offer where date_trunc('month', entry_date) = $1",
       [curr_month]
@@ -586,6 +604,7 @@ app.get("/numOfOffers", async (req, res) => {
 
     if (offerss.rows.length !== 0) {
       const countOffers = await pool.query(
+        //counts number of offers for every day that at least one offer was submitted
         "select DATE_TRUNC('day', entry_date) AS date, COUNT(offer_id) AS count FROM offer where date_trunc('month', entry_date) = $1 GROUP BY DATE_TRUNC('day', entry_date) ORDER BY date ASC;",
         [curr_month]
       );
@@ -601,10 +620,13 @@ app.get("/numOfOffers", async (req, res) => {
       i = 0;
       let j = 0;
       let exists = false;
-
+      
+      //sets dayz = number of days current month has
       let dayz = 0;
-      if (month == 2) {
+      if (month == 2 && year % 4 != 0) {
         dayz = 28;
+      } else if (month == 2 && year % 4 == 0 ) {
+        dayz = 29;
       } else if (month == 4 || month == 6 || month == 9 || month == 11) {
         dayz = 30;
       } else {
