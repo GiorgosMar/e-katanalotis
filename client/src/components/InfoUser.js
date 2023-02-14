@@ -330,8 +330,8 @@ const InfoUser = () => {
                         >
                           <TableHead>
                             <TableRow>
-                              <TableCell>Συνολικό Σκορ</TableCell>
-                              <TableCell align="center">Σκορ μήνα</TableCell>
+                              <TableCell>Συνολικά Tokens</TableCell>
+                              <TableCell align="center">Τελευταία Tokens</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>

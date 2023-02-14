@@ -15,19 +15,19 @@ const AdminDeleteOffer = (store) => {
   const navigate = useNavigate();
 
   //useContext
-  const { open, setOpen } = useContext(OpenDialog);
+  const { openDel, setOpenDel } = useContext(OpenDialog);
   const { offerProducts } = useContext(OfferProducts);
 
   //<------------- handlers ------------->
 
   //hanlder for open rating
   const handleClickOpen = () => {
-    setOpen(true);
+    setOpenDel(true);
   };
 
   //hanlder for close rating
   const handleClose = () => {
-    setOpen(false);
+    setOpenDel(false);
   };
 
   //format date //
@@ -38,19 +38,20 @@ const AdminDeleteOffer = (store) => {
 
   return (
     <Fragment>
-      <Box sx={{ ml: 67 }}>
+      <Box sx={{ml: 56.8}}>
         <Button
           size="small"
           variant="outlined"
+          color="error"
           sx={{ height: 35}}
           onClick={handleClickOpen}
         >
-          Περισσότερα
+          Διαγραφή προσφορών
         </Button>
       </Box>
       <Dialog
         maxWidth="400"
-        open={open}
+        open={openDel}
         onClose={handleClose}
         aria-labelledby="responsive-dialog-title"
       >

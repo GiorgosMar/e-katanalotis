@@ -14,6 +14,8 @@ import Alert from "@mui/material/Alert";
 import UserLocation from "../UserLocation";
 import AdminDeleteOffer from "./AdminDeleteOffer";
 import Box from "@mui/material/Box";
+import Rating from "../Rating";
+import SubmitOffer from "../SubmitOffer";
 
 const DashboardAdmin = () => {
   //useStates//
@@ -22,8 +24,9 @@ const DashboardAdmin = () => {
   const [searchValue, setSearchValue] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [position, setPosition] = useState(null);
-
   const [open, setOpen] = useState(false);
+  const [openSub, setOpenSub] = useState(false);
+  const [openDel, setOpenDel] = useState(false);
 
   // <-------------------------- Fetch -------------------------->
 
@@ -175,8 +178,7 @@ const DashboardAdmin = () => {
                             </p>
                           )
                       )}
-                    {
-                      <OfferProducts.Provider
+                      {<OfferProducts.Provider
                         value={{
                           offerProducts,
                           setOfferProducts,
@@ -186,6 +188,33 @@ const DashboardAdmin = () => {
                           value={{
                             open,
                             setOpen,
+                            openSub,
+                            setOpenSub,
+                          }}
+                        >
+                          <Box
+                            component="span"
+                            m={1}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
+                            <Rating store={store} />
+                            <SubmitOffer store={store} />
+                          </Box>
+                        </OpenDialog.Provider>
+                      </OfferProducts.Provider>}
+                    {
+                      <OfferProducts.Provider
+                        value={{
+                          offerProducts,
+                          setOfferProducts,
+                        }}
+                      >
+                        <OpenDialog.Provider
+                          value={{
+                            openDel,
+                            setOpenDel,
                           }}
                         >
                           <Box
@@ -202,19 +231,47 @@ const DashboardAdmin = () => {
                     }
                   </Popup>
                 </Marker>
-              ) : store.offer_id === null && (
-                <Marker
-                  key={store.store_id}
-                  position={[
-                    parseFloat(store.latitude),
-                    parseFloat(store.longitude),
-                  ]}
-                  icon={redMrkr}
-                >
-                  <Popup>
-                    <b>{store.name}</b> <br />
-                  </Popup>
-                </Marker>
+              ) : (
+                store.offer_id === null && (
+                  <Marker
+                    key={store.store_id}
+                    position={[
+                      parseFloat(store.latitude),
+                      parseFloat(store.longitude),
+                    ]}
+                    icon={redMrkr}
+                  >
+                    <Popup>
+                      <b>{store.name}</b> <br />
+                      <OfferProducts.Provider
+                        value={{
+                          offerProducts,
+                          setOfferProducts,
+                        }}
+                      >
+                        <OpenDialog.Provider
+                          value={{
+                            open,
+                            setOpen,
+                            openSub,
+                            setOpenSub,
+                          }}
+                        >
+                          <Box
+                            component="span"
+                            m={1}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
+                            {store.offer_id !== null &&<Rating store={store} />}
+                            <SubmitOffer store={store} />
+                          </Box>
+                        </OpenDialog.Provider>
+                      </OfferProducts.Provider>
+                    </Popup>
+                  </Marker>
+                )
               )
             )}
         </MapContainer>

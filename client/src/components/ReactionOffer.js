@@ -43,7 +43,7 @@ const ReactionOffer = (indexProduct) => {
         true,
         todayDate
       );
-    } else {
+    } else { //Οταν ο χρηστης παιρνει πισω το like
       indexProduct.indexProduct.likes = indexProduct.indexProduct.likes - 1;
       updateLikes(
         indexProduct.indexProduct.likes,
@@ -78,7 +78,7 @@ const ReactionOffer = (indexProduct) => {
         false,
         todayDate
       );
-    } else {
+    } else { //Οταν ο χρηστης παιρνει πισω το dislike
       indexProduct.indexProduct.dislikes =
         indexProduct.indexProduct.dislikes - 1;
       updateDislikes(
@@ -221,7 +221,7 @@ const ReactionOffer = (indexProduct) => {
         />
       )}
 
-      {checked === false ? (
+      {checked === false ? ( //Δεν μπορεις να κανεις reaction
         <IconButton disabled={true}>
           <ThumbUpOutlinedIcon />
         </IconButton>
