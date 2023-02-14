@@ -183,7 +183,7 @@ app.put("/offerlike", async (req, res) => {
         [userId]
       );
     } else if (existReact.r_type === true) {
-      //if user hits like button to take back the like, score of user that submitted the offer is decreased by 5
+      //(true = like) if user hits like button to take back the like, score of user that submitted the offer is decreased by 5
       const updateScore = await pool.query(
         "UPDATE users SET score = score - 5, score_month = score_month - 5 WHERE user_id = $1",
         [userId]
@@ -558,8 +558,9 @@ app.put("/updateStore", async (req, res) => {
     const { storeId, newStoreName, shop, lat, lon } = req.body;
     let storeName = newStoreName;
     const store_location = "POINT (" + lon + " " + lat + ")";
+    
 
-    if (newStoreName === "") {
+    if (newStoreName === "") { //for the autocomplete
       const getStore = await pool.query(
         "SELECT name FROM store WHERE id = $1;",
         [storeId]
@@ -612,6 +613,7 @@ app.get("/numOfOffers", async (req, res) => {
 
       let i = 0;
       while (i < countOffers.rows.length) {
+        //converts date to number of the day (creating date object)
         const thedate = countOffers.rows[i].date;
         const dayObj = new Date(thedate);
         const dayNum = dayObj.getDate();
@@ -636,8 +638,10 @@ app.get("/numOfOffers", async (req, res) => {
       while (i < dayz) {
         j = 0;
         while (j < countOffers.rows.length) {
+          //for every record in countoffers, 
           const daynum = countOffers.rows[j].date;
           if (daynum === i + 1) {
+            //if there is record with that day (i) = if there is at least one offer submitted that day
             j++;
             exists = true;
             break;
@@ -647,17 +651,20 @@ app.get("/numOfOffers", async (req, res) => {
           }
         }
         if (exists === false) {
+          //no offers were submitted that day, so count = 0
           countOffers.rows.push({ date: i + 1, count: 0 });
         }
         i++;
       }
       const countOffer = countOffers.rows.sort((a, b) => {
+        //sorting order by day ascending
         if (a.date < b.date) {
           return -1;
         }
       });
       let countOfferr = [];
       for (i = 0; i < countOffer.length; i++) {
+        //takes the count for every day (typecasted) and puts it in an array (sorted, so day number not needed)
         let offerNum = Number(countOffers.rows[i].count);
         countOfferr.push(offerNum);
       }
@@ -842,7 +849,7 @@ async function first() {
   counterFirst++;
 }
 
-//telos tou mhna
+//end of month
 async function second() {
   const newNumUsers = await countUsers();
   const tokensToSplit = await pool.query(
