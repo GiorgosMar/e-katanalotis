@@ -13,6 +13,7 @@ export default function ButtonAppBar() {
   //useContext
   const { setIsAuthenticated } = useContext(UserContext);
 
+  //Logout αφαιρει το Token απο το localStorage
   const logout = async (e) => {
     e.preventDefault();
     try {

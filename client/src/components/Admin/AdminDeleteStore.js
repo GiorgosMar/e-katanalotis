@@ -18,6 +18,7 @@ const AdminDeleteStore = () => {
 
   //<------------------------ Fetch ---------------------------->
 
+  //Get all stores//
   const getAllStores = async () => {
     try {
       const response = await fetch("http://localhost:5000/store");
@@ -29,14 +30,16 @@ const AdminDeleteStore = () => {
     }
   };
 
+  //Delete store//
   const deleteStore = async (storeid) => {
     if (storeid !== null) {
       const body = { storeid };
-      await fetch("http://localhost:5000/", {
+      await fetch("http://localhost:5000/deleteStore", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }).then(
+        setReturnStore(null),
         setErrorMessage(false),
         setDeleteMessage("Το κατάστημα έχει διαγραφεί επιτυχώς!")
       );

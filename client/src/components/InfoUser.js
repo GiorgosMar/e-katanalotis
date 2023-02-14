@@ -116,12 +116,14 @@ const InfoUser = () => {
       if (
         newUserCreds.newUsername === "" &&
         newUserCreds.newPassword === "" &&
-        newUserCreds.newConfPassword === "" &&
-        newUserCreds.password === ""
+        newUserCreds.newConfPassword === ""
       ) {
         setSuccessMessage(false);
         setErrorMessage("Τα πεδία άδεια!");
-      } else if (newUserCreds.password !== "") {
+      } else if (newUserCreds.password === "") {
+        setSuccessMessage(false);
+        setErrorMessage("Το πεδίο τωρινού κωδικού είναι κενό!");
+        }else if (newUserCreds.password !== "") {
         if (newUserCreds.newUsername === "") {
           updatePassword(
             userCredentials.user_id,

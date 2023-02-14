@@ -1,5 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react";
-import { UserPosition } from "../UserContext";
+import { OfferProducts, OpenDialog, UserPosition } from "../UserContext";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import SearchIcon from "@mui/icons-material/Search";
@@ -12,15 +12,22 @@ import AdminNavbar from "./AdminNavbar";
 import { Container } from "@mui/system";
 import Alert from "@mui/material/Alert";
 import UserLocation from "../UserLocation";
+import AdminDeleteOffer from "./AdminDeleteOffer";
+import Box from "@mui/material/Box";
 
 const DashboardAdmin = () => {
-  //useState
+  //useStates//
   const [stores, setStores] = useState([]);
   const [offerProducts, setOfferProducts] = useState([]);
   const [searchValue, setSearchValue] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [position, setPosition] = useState(null);
 
+  const [open, setOpen] = useState(false);
+
+  // <-------------------------- Fetch -------------------------->
+
+  //Get all Stores//
   const getAllStores = async () => {
     try {
       const response = await fetch("http://localhost:5000/store");
@@ -32,9 +39,13 @@ const DashboardAdmin = () => {
     }
   };
 
+  //Get Offers//
   const getOfferProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/offerProducts");
+      const response = await fetch("http://localhost:5000/offerProducts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      });
       const getOfferProducts = await response.json();
       setOfferProducts(getOfferProducts);
     } catch (err) {
@@ -42,6 +53,7 @@ const DashboardAdmin = () => {
     }
   };
 
+  //Search//
   const onSubmitSearchValue = async (e) => {
     e.preventDefault();
     try {
@@ -61,7 +73,7 @@ const DashboardAdmin = () => {
     }
   };
 
-  //format date //
+  //format date//
   const getFormattedDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-GB");
@@ -133,7 +145,7 @@ const DashboardAdmin = () => {
 
           {stores &&
             stores.map((store) =>
-              store.offer_id !== null ? (
+              store.offer_id !== null && store.valid === true ? (
                 <Marker
                   key={store.store_id}
                   position={[
@@ -163,9 +175,34 @@ const DashboardAdmin = () => {
                             </p>
                           )
                       )}
+                    {
+                      <OfferProducts.Provider
+                        value={{
+                          offerProducts,
+                          setOfferProducts,
+                        }}
+                      >
+                        <OpenDialog.Provider
+                          value={{
+                            open,
+                            setOpen,
+                          }}
+                        >
+                          <Box
+                            component="span"
+                            m={1}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
+                            <AdminDeleteOffer store={store} />
+                          </Box>
+                        </OpenDialog.Provider>
+                      </OfferProducts.Provider>
+                    }
                   </Popup>
                 </Marker>
-              ) : (
+              ) : store.offer_id === null && (
                 <Marker
                   key={store.store_id}
                   position={[

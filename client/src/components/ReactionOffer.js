@@ -12,6 +12,7 @@ const ReactionOffer = (indexProduct) => {
 
   //useState
   const [checked, setChecked] = useState(indexProduct.indexProduct.stock);
+  const [todayDate, setTodayDate] = useState(null);
 
   //<-----------handlers----------->
 
@@ -39,7 +40,8 @@ const ReactionOffer = (indexProduct) => {
       addReactionProduct(
         indexProduct.indexProduct.offer_id,
         userCredentials.user_id,
-        true
+        true,
+        todayDate
       );
     } else {
       indexProduct.indexProduct.likes = indexProduct.indexProduct.likes - 1;
@@ -73,7 +75,8 @@ const ReactionOffer = (indexProduct) => {
       addReactionProduct(
         indexProduct.indexProduct.offer_id,
         userCredentials.user_id,
-        false
+        false,
+        todayDate
       );
     } else {
       indexProduct.indexProduct.dislikes =
@@ -150,8 +153,8 @@ const ReactionOffer = (indexProduct) => {
   };
 
   //Add reaction
-  const addReactionProduct = async (offerid, userid, like) => {
-    const body = { offerid, userid, like };
+  const addReactionProduct = async (offerid, userid, like, date) => {
+    const body = { offerid, userid, like, date };
     await fetch("http://localhost:5000/addReaction", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -175,7 +178,29 @@ const ReactionOffer = (indexProduct) => {
     }
   };
 
-  //useEffects
+  //format date//
+  const getFormattedDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB");
+  };
+
+  //Get current date//
+  const today = () => {
+    const current = new Date();
+    //setTodayDate(getFormattedDate(current));
+    setTodayDate(current);
+    const forma = getFormattedDate(current);
+    const dollar = `${current.getFullYear()}-${
+      current.getMonth() + 1
+    }-${current.getDate()}`;
+  };
+
+  //useEffect//
+  useEffect(() => {
+    today();
+  }, []);
+
+  //useEffects//
   useEffect(() => {
     getReactedProducts();
   }, []);

@@ -1,9 +1,5 @@
-import React, { Fragment, useState, useEffect, useContext } from "react";
-import {
-  OfferProducts,
-  OpenDialog,
-  UserPosition
-} from "./UserContext";
+import React, { Fragment, useState, useEffect } from "react";
+import { OfferProducts, OpenDialog, UserPosition } from "./UserContext";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import SearchIcon from "@mui/icons-material/Search";
@@ -30,6 +26,8 @@ const DashboardUser = () => {
   const [openSub, setOpenSub] = useState(false);
   const [position, setPosition] = useState(null);
 
+  // <----------------------- fetch ----------------------->
+  //Get all stores//
   const getAllStores = async () => {
     try {
       const response = await fetch("http://localhost:5000/store");
@@ -41,9 +39,13 @@ const DashboardUser = () => {
     }
   };
 
+  //Get offers//
   const getOfferProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/offerProducts");
+      const response = await fetch("http://localhost:5000/offerProducts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      });
       const getOfferProducts = await response.json();
       setOfferProducts(getOfferProducts);
     } catch (err) {
@@ -51,6 +53,9 @@ const DashboardUser = () => {
     }
   };
 
+  // <------------------------ Functions ------------------------>
+
+  //For Distance//
   const getdistance = (lat1, lon1, lat2, lon2) => {
     var R = 6378.137; // Radius of earth in KM
     var dLat = (lat2 * Math.PI) / 180 - (lat1 * Math.PI) / 180;
@@ -66,6 +71,7 @@ const DashboardUser = () => {
     return d * 1000;
   };
 
+  //Search//
   const onSubmitSearchValue = async (e) => {
     e.preventDefault();
     try {
@@ -85,18 +91,17 @@ const DashboardUser = () => {
     }
   };
 
+  //format date//
+  const getFormattedDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB");
+  };
+
   //useEffect//
   useEffect(() => {
     getAllStores();
     getOfferProducts();
   }, []);
-
-
-  //format date //
-  const getFormattedDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB");
-  };
 
   return (
     <Fragment>
@@ -158,7 +163,7 @@ const DashboardUser = () => {
 
           {stores &&
             stores.map((store) =>
-              store.offer_id !== null ? (
+              store.offer_id !== null && store.valid === true ? (
                 <Marker
                   key={store.store_id}
                   position={[
@@ -193,7 +198,7 @@ const DashboardUser = () => {
                         position.lng,
                         store.latitude,
                         store.longitude
-                      ) < 10000 ? (
+                      ) < 500 ? (
                       <OfferProducts.Provider
                         value={{
                           offerProducts,
@@ -205,7 +210,7 @@ const DashboardUser = () => {
                             open,
                             setOpen,
                             openSub,
-                            setOpenSub
+                            setOpenSub,
                           }}
                         >
                           <Box
@@ -216,63 +221,65 @@ const DashboardUser = () => {
                             alignItems="center"
                           >
                             <Rating store={store} />
-                            <SubmitOffer store={store}/>
+                            <SubmitOffer store={store} />
                           </Box>
                         </OpenDialog.Provider>
                       </OfferProducts.Provider>
                     ) : (
-                      <b>ΟΧΙ</b>
+                      <b>Το κατάστημα είναι αρκετά μακρυά σας!</b>
                     )}
                   </Popup>
                 </Marker>
               ) : (
-                <Marker
-                  key={store.store_id}
-                  position={[
-                    parseFloat(store.latitude),
-                    parseFloat(store.longitude),
-                  ]}
-                  icon={redMrkr}
-                >
-                  <Popup>
-                    <b>{store.name}</b> <br />
-                    {position === null ? null : getdistance(
-                        position.lat,
-                        position.lng,
-                        store.latitude,
-                        store.longitude
-                      ) < 10000 ? (
-                      <OfferProducts.Provider
-                        value={{
-                          offerProducts,
-                          setOfferProducts,
-                        }}
-                      >
-                        <OpenDialog.Provider
+                store.offer_id === null && (
+                  <Marker
+                    key={store.store_id}
+                    position={[
+                      parseFloat(store.latitude),
+                      parseFloat(store.longitude),
+                    ]}
+                    icon={redMrkr}
+                  >
+                    <Popup>
+                      <b>{store.name}</b> <br />
+                      {position === null ? null : getdistance(
+                          position.lat,
+                          position.lng,
+                          store.latitude,
+                          store.longitude
+                        ) < 500 ? (
+                        <OfferProducts.Provider
                           value={{
-                            open,
-                            setOpen,
-                            openSub,
-                            setOpenSub
+                            offerProducts,
+                            setOfferProducts,
                           }}
                         >
-                          <Box
-                            component="span"
-                            m={1}
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
+                          <OpenDialog.Provider
+                            value={{
+                              open,
+                              setOpen,
+                              openSub,
+                              setOpenSub,
+                            }}
                           >
-                            <Rating store={store} />
-                            <SubmitOffer store={store}/>
-                          </Box>
-                        </OpenDialog.Provider>
-                      </OfferProducts.Provider>
-                    ) : (
-                      <b>ΟΧΙ</b>
-                    )}
-                  </Popup>
-                </Marker>
+                            <Box
+                              component="span"
+                              m={1}
+                              display="flex"
+                              justifyContent="space-between"
+                              alignItems="center"
+                            >
+                              <Rating store={store} />
+                              <SubmitOffer store={store} />
+                            </Box>
+                          </OpenDialog.Provider>
+                        </OfferProducts.Provider>
+                      ) : (
+                        <b>Το κατάστημα είναι αρκετά μακρυά σας!</b>
+                      )}
+                    </Popup>
+                  </Marker>
+                )
               )
             )}
         </MapContainer>

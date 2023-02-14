@@ -14,8 +14,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Alert from "@mui/material/Alert";
 import "../css/styles.css";
 
-
-
 function Copyright(props) {
   return (
     <Typography
@@ -34,18 +32,22 @@ function Copyright(props) {
 const theme = createTheme();
 
 const Login = () => {
+  //useContext//
   const { setIsAuthenticated } = useContext(UserContext);
   const { setRole } = useContext(UserContext);
   const { setUserCredentials } = useContext(UserCredentials);
 
+  //useState//
   const [inputs, setInputs] = useState({
     email: "",
     password: "",
   });
-
   const [errorMessage, setErrorMessage] = useState();
   const { email, password } = inputs;
 
+  // <------------------------ Functions ------------------------>
+
+  //Submit form//
   const onSubmitForm = async (e) => {
     e.preventDefault();
     try {
@@ -79,8 +81,6 @@ const Login = () => {
       console.error(err.message);
     }
   };
-
-
 
   return (
     <Fragment>

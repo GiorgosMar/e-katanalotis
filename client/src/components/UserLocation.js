@@ -5,16 +5,18 @@ import { useMap, Popup, Marker } from "react-leaflet";
 import { UserPosition } from "./UserContext";
 
 const UserLocation = () => {
+  //useContext//
   const { position, setPosition } = useContext(UserPosition);
 
-
+  //useMap//
   const map = useMap();
 
+  //useEffect//
   useEffect(() => {
     map.locate().on("locationfound", function (e) {
       setPosition(e.latlng);
       map.flyTo(e.latlng, map.getZoom());
-      const radius = 1000;
+      const radius = 500;
       const circle = L.circle(e.latlng, radius);
       circle.addTo(map);
     });
@@ -23,7 +25,7 @@ const UserLocation = () => {
   
   return position === null ? null : (
     <Marker position={position} icon={icon}>
-      <Popup>You are here.</Popup>
+      <Popup>Είμαστε εδώ!</Popup>
     </Marker>
   );
 };

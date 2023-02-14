@@ -1,5 +1,5 @@
 import { Box } from "@mui/system";
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useForm } from "react";
 import { Button, Typography, TextField } from "@mui/material";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -13,17 +13,18 @@ const AdminEditStores = () => {
   //useStates
   const [stores, setStores] = useState([]);
   const [editStore, setEditStore] = useState({
-    storeId: "",
-    newStoreName: "",
+    storeName: "",
     shop: "",
     lat: "",
     lon: "",
+    storeId: "",
   });
   const [updateMessage, setUpdateMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
 
   //<------------------------ Fetch ---------------------------->
 
+  //Get all Stores//
   const getAllStores = async () => {
     try {
       const response = await fetch("http://localhost:5000/store");
@@ -35,6 +36,7 @@ const AdminEditStores = () => {
     }
   };
 
+  //Update store info//
   const updateStore = async () => {
     if (editStore.storeId !== "") {
       const body = editStore;
@@ -52,19 +54,16 @@ const AdminEditStores = () => {
     }
   };
 
-  //auto Complete
-  const setFields = async (storeid) => {
-    const getstore = await fetch(
-      `http://localhost:5000/store?storeid=${storeid}`
-    );
-    const storeInfo = await getstore.json().then(
-      setEditStore({
-        newStoreName: "",
-        shop: storeInfo.shop,
-        lat: storeInfo.latitude,
-        lon: storeInfo.longitude,
-      })
-    );
+  //Get store info via storeid for fields//
+  const getStoreInfos = async (storeid) => {
+    if (storeid !== "") {
+      const getstore = await fetch(
+        `http://localhost:5000/getStoreInfo?storeid=${storeid}`
+      );
+      const storeInfo = await getstore.json();
+
+      console.log();
+    }
   };
 
   //useEffect//
@@ -72,8 +71,9 @@ const AdminEditStores = () => {
     getAllStores();
   }, []);
 
+  //useEffect//
   useEffect(() => {
-    setFields(editStore.storeId);
+    getStoreInfos(editStore.storeId);
   }, [editStore.storeId]);
 
   return (
@@ -144,13 +144,13 @@ const AdminEditStores = () => {
               },
             }}
             sx={{ minWidth: 120, m: 2 }}
-            name="newStoreName"
-            label="Νεό όνομα καταστήματος"
+            name="name"
+            label="Όνομα καταστήματος"
             type="text"
-            id="newStoreName"
-            value={editStore.newStoreName}
+            id="storeName"
+            value={editStore.storeName}
             onChange={(e) =>
-              setEditStore({ ...editStore, newStoreName: e.target.value })
+              setEditStore({ ...editStore, storeName: e.target.value })
             }
           />
           <Box sx={{ minWidth: 120, m: 2 }}>
@@ -158,6 +158,7 @@ const AdminEditStores = () => {
               <InputLabel id="shop">Είδος</InputLabel>
               <Select
                 labelId="shop"
+                name="shop"
                 id="shop"
                 value={editStore.shop}
                 label="Είδος"
@@ -189,7 +190,7 @@ const AdminEditStores = () => {
               },
             }}
             sx={{ minWidth: 120, m: 2 }}
-            name="latitude"
+            name="lat"
             label="latitude"
             type="text"
             id="latitude"
@@ -198,6 +199,7 @@ const AdminEditStores = () => {
               setEditStore({ ...editStore, lat: e.target.value })
             }
           />
+
           <TextField
             inputProps={{
               style: {
@@ -214,7 +216,7 @@ const AdminEditStores = () => {
               },
             }}
             sx={{ minWidth: 120, m: 2 }}
-            name="longitude"
+            name="lon"
             label="longitude"
             type="text"
             id="longitude"
@@ -235,11 +237,7 @@ const AdminEditStores = () => {
               justifyContent: "space-evenly",
             }}
           >
-            <Grid
-              style={{ width: "500px" }}
-              fullWidth
-              sx={{ mr:20 }}
-            >
+            <Grid style={{ width: "500px" }} fullWidth sx={{ mr: 20 }}>
               {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
               {updateMessage && (
                 <Alert severity="success">{updateMessage}</Alert>

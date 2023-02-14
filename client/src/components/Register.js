@@ -31,7 +31,7 @@ function Copyright(props) {
 const theme = createTheme();
 
 const Register = () => {
-  
+  //useStates//
   const [inputs, setInputs] = useState({
     username: "",
     email: "",
@@ -41,8 +41,10 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState();
   const [successMessage, setSuccessMessage] = useState();
 
+  //inputs
   const { username, email, password, conf_password } = inputs;
 
+  //Submit form for registration//
   const onSubmitForm = async (e) => {
     e.preventDefault();
     try {
@@ -61,11 +63,11 @@ const Register = () => {
         setSuccessMessage("Επιτυχής εγγραφή!");
       }
       if (parseRes === "User already exist!") {
-        setErrorMessage("User already exist!");
+        setErrorMessage("Ο χρήστης υπάρχει ήδη!");
       } else if (parseRes === "Missing Credentials") {
-        setErrorMessage("Missing Credentials");
+        setErrorMessage("Τα πεδία είναι κενά!");
       } else if (parseRes === "Invalid Email") {
-        setErrorMessage("Invalid Email");
+        setErrorMessage("Λάθος email!");
       } else if (parseRes === "Οι κωδικοί δεν ταιριάζουν") {
         setErrorMessage("Οι κωδικοί δεν ταιριάζουν");
       } else if (parseRes === "Λάθος κωδίκος") {

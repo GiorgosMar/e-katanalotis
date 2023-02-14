@@ -14,18 +14,17 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useNavigate } from "react-router-dom";
 
 const SubmitOffer = (store) => {
-  //useNavigate
+  //useNavigate//
   const navigate = useNavigate();
 
-  //useContext
+  //useContext//
   const { openSub, setOpenSub } = useContext(OpenDialog);
   const { userCredentials } = useContext(UserCredentials);
 
-  //parse float
+  //parse float//
   const parseFloatData = (string) => {
     let data = null;
     if (string != null && string !== "") {
@@ -45,11 +44,13 @@ const SubmitOffer = (store) => {
     userId: userCredentials.user_id,
     date: null,
   });
-
   const [products, setProducts] = useState([]);
   const [errorMessage, setErrorMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
 
+  // <---------------------- Fetch ---------------------->
+
+  //Get products//
   const getProducts = async () => {
     try {
       const response = await fetch(
@@ -62,6 +63,9 @@ const SubmitOffer = (store) => {
     }
   };
 
+  // <---------------------- Functions ---------------------->
+
+  //Submit form for offer//
   const onSubmitForm = async (e) => {
     e.preventDefault();
     try {
@@ -120,52 +124,37 @@ const SubmitOffer = (store) => {
     }
   };
 
+  // <---------------------- Handlers ---------------------->
+
+  //handler Open Dialog//
   const handleClickOpen = () => {
     setOpenSub(true);
   };
 
+  //handler Close Dialog//
   const handleClose = () => {
     setOpenSub(false);
   };
 
-  //format date
-  const getFormattedDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-CA");
-  };
-
-  //useEffects
-  useEffect(() => {
-    getProducts();
-  }, []);
-
-  
-   //format date
-  const getFormattedDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-CA");
-  };
-
+  //Get current date//
   const getToday = () => {
     const current = new Date();
     setSubmitOffer({
       ...submitOffer,
-      date: current
+      date: current,
     });
-    console.log("submitOffer.date = " + submitOffer.date);
   };
 
-  //useEffects
+  //useEffects//
   useEffect(() => {
     getProducts();
-    console.log(submitOffer);
   }, []);
 
+  //useEffects//
   useEffect(() => {
     getToday();
-    console.log("useeffect");
   }, []);
-  
+
   return (
     <Fragment>
       <Button
@@ -252,18 +241,6 @@ const SubmitOffer = (store) => {
                   newPrice: e.target.value,
                 })
               }
-            />
-            <DatePicker
-              inputFormat="dd/MM/yyyy"
-              label="Ημερομηνία Προσφοράς"
-              value={new Date(submitOffer.date)}
-              onChange={(formatDate) => {
-                setSubmitOffer({
-                  ...submitOffer,
-                  date: getFormattedDate(formatDate),
-                });
-              }}
-              renderInput={(params) => <TextField {...params} fullWidth />}
             />
           </DialogContentText>
         </DialogContent>

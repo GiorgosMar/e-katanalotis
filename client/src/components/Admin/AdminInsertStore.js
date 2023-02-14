@@ -10,7 +10,7 @@ import Alert from "@mui/material/Alert";
 import AddIcon from "@mui/icons-material/Add";
 
 const AdminInsertStore = () => {
-  //useStates
+  //useStates//
   const [insertNewStore, setInsertNewStore] = useState({
     nameStore: "",
     shop: "",
@@ -22,6 +22,7 @@ const AdminInsertStore = () => {
 
   //<------------------------ Fetch ---------------------------->
 
+  //Add store//
   const insertStore = async () => {
     if (
       insertNewStore.nameStore !== "" &&
@@ -30,13 +31,13 @@ const AdminInsertStore = () => {
       insertNewStore.lon !== ""
     ) {
       const body = insertNewStore;
-      await fetch("http://localhost:5000/", {
+      await fetch("http://localhost:5000/addStore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }).then(
         setErrorMessage(false),
-        setInsertMessage("Το κατάστημα έχει διαγραφεί επιτυχώς!")
+        setInsertMessage("Το κατάστημα έχει προσθεθεί επιτυχώς!")
       );
     } else {
       setInsertMessage(false);

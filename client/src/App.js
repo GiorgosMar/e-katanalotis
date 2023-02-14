@@ -7,14 +7,20 @@ import {
   Navigate,
 } from "react-router-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 //Components
 import DashboardUser from "./components/DashboardUser";
-import DashboardAdmin from "./components/DashboardAdmin";
+import DashboardAdmin from "./components/Admin/DashboardAdmin";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import InfoUser from "./components/InfoUser";
+import AdminProducts from "./components/Admin/AdminProducts";
 import { UserContext, UserCredentials } from "./components/UserContext";
+import AdminStores from "./components/Admin/AdminStores";
+import AdminLeaderboard from "./components/Admin/AdminLeaderboard";
+import Charts from "./components/Admin/Charts";
+import AdminInfo from "./components/Admin/AdminInfo";
 
 function App() {
   //useStates
@@ -126,6 +132,86 @@ function App() {
                       <DashboardAdmin />
                     ) : isAuthenticated && role === 0 ? (
                       <Navigate to="/dashboardUser" />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
+                  path="/infoUser"
+                  element={
+                    !isAuthenticated ? (
+                      <Navigate to="/login" />
+                    ) : isAuthenticated && role === 1 ? (
+                      <InfoUser />
+                    ) : isAuthenticated && role === 0 ? (
+                      <InfoUser />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
+                  path="/adminproducts"
+                  element={
+                    !isAuthenticated ? (
+                      <Navigate to="/login" />
+                    ) : isAuthenticated && role === 1 ? (
+                      <AdminProducts />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
+                  path="/adminstores"
+                  element={
+                    !isAuthenticated ? (
+                      <Navigate to="/login" />
+                    ) : isAuthenticated && role === 1 ? (
+                      <AdminStores />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
+                  path="/adminleaderboard"
+                  element={
+                    !isAuthenticated ? (
+                      <Navigate to="/login" />
+                    ) : isAuthenticated && role === 1 ? (
+                      <AdminLeaderboard />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
+                  path="/adminchart"
+                  element={
+                    !isAuthenticated ? (
+                      <Navigate to="/login" />
+                    ) : isAuthenticated && role === 1 ? (
+                      <Charts />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
+                  path="/admininfo"
+                  element={
+                    !isAuthenticated ? (
+                      <Navigate to="/login" />
+                    ) : isAuthenticated && role === 1 ? (
+                      <AdminInfo />
                     ) : (
                       <Navigate to="/login" />
                     )

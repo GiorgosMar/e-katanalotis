@@ -8,11 +8,13 @@ import { UserContext } from "../UserContext";
 import { useNavigate } from "react-router-dom";
 
 export default function ButtonAppBar() {
-  //useNavigate
+  //useNavigate//
   const navigate = useNavigate();
-  //useContext
+
+  //useContext//
   const { setIsAuthenticated } = useContext(UserContext);
 
+  //Logout αφαιρεί το Token από το localStorage//
   const logout = async (e) => {
     e.preventDefault();
     try {
@@ -22,6 +24,7 @@ export default function ButtonAppBar() {
       console.error(err.message);
     }
   };
+  
   return (
     <Box sx={{ flexGrow: 1, pb: 1 }}>
       <AppBar position="static" sx={{ backgroundColor: "#472183", py: 1 }}>
@@ -50,7 +53,7 @@ export default function ButtonAppBar() {
           <Typography
             textAlign="center"
             sx={[
-              { px: 2},
+              { px: 2 },
               {
                 "&:hover": {
                   padding: 2,
@@ -67,7 +70,7 @@ export default function ButtonAppBar() {
           <Typography
             textAlign="center"
             sx={[
-              { px: 2},
+              { px: 2 },
               {
                 "&:hover": {
                   padding: 2,
@@ -84,24 +87,7 @@ export default function ButtonAppBar() {
           <Typography
             textAlign="center"
             sx={[
-              { px: 2},
-              {
-                "&:hover": {
-                  padding: 2,
-                  borderRadius: 1,
-                  color: "white",
-                  backgroundColor: "#62B6B7",
-                },
-              },
-            ]}
-            onClick={() => navigate("/")}
-          >
-            Στατιστικά
-          </Typography>
-          <Typography
-            textAlign="center"
-            sx={[
-              { px: 2, mr: 50},
+              { px: 2 },
               {
                 "&:hover": {
                   padding: 2,
@@ -114,6 +100,41 @@ export default function ButtonAppBar() {
             onClick={() => navigate("/adminleaderboard")}
           >
             Leaderboard
+          </Typography>
+          <Typography
+            textAlign="center"
+            sx={[
+              { px: 2 },
+              {
+                "&:hover": {
+                  padding: 2,
+                  borderRadius: 1,
+                  color: "white",
+                  backgroundColor: "#62B6B7",
+                },
+              },
+            ]}
+            onClick={() => navigate("/adminchart")}
+          >
+            Στατιστικά
+          </Typography>
+
+          <Typography
+            textAlign="center"
+            sx={[
+              { px: 2, ml: 27 },
+              {
+                "&:hover": {
+                  padding: 2,
+                  borderRadius: 1,
+                  color: "white",
+                  backgroundColor: "#62B6B7",
+                },
+              },
+            ]}
+            onClick={() => navigate("/admininfo")}
+          >
+            Επεξεργασία προφίλ
           </Typography>
           <Typography
             align="center"
