@@ -123,6 +123,7 @@ app.put("/offerProducts", async (req, res) => {
 
       if (recentPrice.rows.length === 0 || averagePrice.rows.length === 0) {
         i++;
+        //continue για να μην τρεξουν τα πο κατω με undefined τιμες
         continue;
       }
 
