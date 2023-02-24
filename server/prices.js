@@ -4,13 +4,13 @@ const fs = require("fs");
 
 const pool = new Pool({
   user: "postgres",
-  password: "walter12@",
+  password: "1111",
   host: "localhost",
   port: 5432,
-  database: "newweb"
+  database: "webprojectdb"
 });
 
-const jsonData= JSON.parse(fs.readFileSync("C:/Users/niklo/pythonstuff/output_1000_1010_1673366523.json"));
+const jsonData= JSON.parse(fs.readFileSync("C:/Users/marma/OneDrive/Υπολογιστής/prices.json"));
 
 
 const insertPriceHistory = async (jsonData) => {

@@ -61,14 +61,20 @@ router.post("/login", validInfo, async (req, res) => {
   }
 });
 
-router.post("/verify", authorize, (req, res) => {
+router.post("/verify", authorize, async (req, res) => {
   try {
-    res.json(true);
-    //res.status(200).send('Empty Body');
+    const user = await pool.query(
+      "SELECT * FROM users WHERE user_id = $1",
+      [req.user] 
+    );
+    const auth = true;
+    user_credentials = user.rows[0];
+    return res.json({auth, user_credentials});
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
 });
+
 
 module.exports = router;
