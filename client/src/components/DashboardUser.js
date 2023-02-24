@@ -67,7 +67,7 @@ const DashboardUser = () => {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2); //haversine για αποσταση 2 σημειων σε μια σφαιρα
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); //Υπολογισμος κεντρικης γωνιας
-    var d = R * c; //Αποσταση 
+    var d = R * c; //Αποσταση
     return d * 1000; //Αποσταση σε μετρα
   };
 
@@ -220,7 +220,9 @@ const DashboardUser = () => {
                             justifyContent="space-between"
                             alignItems="center"
                           >
-                            <Rating store={store} />
+                            {store.offer_id !== null && (
+                              <Rating store={store} />
+                            )}
                             <SubmitOffer store={store} />
                           </Box>
                         </OpenDialog.Provider>
@@ -231,7 +233,11 @@ const DashboardUser = () => {
                   </Popup>
                 </Marker>
               ) : (
-                store.offer_id === null && (
+                (store.valid === false &&
+                  !stores.find(
+                    ({ valid, id }) => valid === true && id === store.id
+                  )) |
+                  (store.valid === null) && (
                   <Marker
                     key={store.store_id}
                     position={[
@@ -269,7 +275,9 @@ const DashboardUser = () => {
                               justifyContent="space-between"
                               alignItems="center"
                             >
-                              <Rating store={store} />
+                              {store.offer_id !== null && (
+                                <Rating store={store} />
+                              )}
                               <SubmitOffer store={store} />
                             </Box>
                           </OpenDialog.Provider>

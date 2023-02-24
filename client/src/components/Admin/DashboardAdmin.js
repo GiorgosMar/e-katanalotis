@@ -178,7 +178,8 @@ const DashboardAdmin = () => {
                             </p>
                           )
                       )}
-                      {<OfferProducts.Provider
+                    {
+                      <OfferProducts.Provider
                         value={{
                           offerProducts,
                           setOfferProducts,
@@ -203,7 +204,8 @@ const DashboardAdmin = () => {
                             <SubmitOffer store={store} />
                           </Box>
                         </OpenDialog.Provider>
-                      </OfferProducts.Provider>}
+                      </OfferProducts.Provider>
+                    }
                     {
                       <OfferProducts.Provider
                         value={{
@@ -232,7 +234,11 @@ const DashboardAdmin = () => {
                   </Popup>
                 </Marker>
               ) : (
-                store.offer_id === null && (
+                (store.valid === false &&
+                  !stores.find(
+                    ({ valid, id }) => valid === true && id === store.id
+                  )) |
+                  (store.valid === null) && (
                   <Marker
                     key={store.store_id}
                     position={[
@@ -264,7 +270,9 @@ const DashboardAdmin = () => {
                             justifyContent="space-between"
                             alignItems="center"
                           >
-                            {store.offer_id !== null &&<Rating store={store} />}
+                            {store.offer_id !== null && (
+                              <Rating store={store} />
+                            )}
                             <SubmitOffer store={store} />
                           </Box>
                         </OpenDialog.Provider>

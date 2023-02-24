@@ -34,8 +34,6 @@ const AdminLeaderboard = () => {
     getLeaderboard();
   }, []);
 
-  console.log(leaderboard);
-
   return (
     <Fragment>
       <Container maxWidth="xl" disableGutters>

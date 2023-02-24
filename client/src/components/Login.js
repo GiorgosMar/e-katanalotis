@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useState, useEffect } from "react";
+import React, { Fragment, useContext, useState} from "react";
 import { UserContext, UserCredentials } from "./UserContext";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -189,12 +189,12 @@ const Login = () => {
                   </Grid>
                 </Box>
               </Box>
-              <Grid>
+              <Grid sx={{mt:2}}>
                 {errorMessage && (
                   <Alert severity="error"> {errorMessage} </Alert>
                 )}
               </Grid>
-              <Copyright sx={{ mt: 20, mb: 4 }} />
+              <Copyright sx={{ mt: 10, mb: 4 }} />
             </Container>
           </ThemeProvider>
         </div>

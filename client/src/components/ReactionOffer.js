@@ -33,23 +33,27 @@ const ReactionOffer = (indexProduct) => {
       )
     ) {
       indexProduct.indexProduct.likes = indexProduct.indexProduct.likes + 1;
-      updateLikes(
-        indexProduct.indexProduct.likes,
-        indexProduct.indexProduct.offer_id
-      );
       addReactionProduct(
         indexProduct.indexProduct.offer_id,
         userCredentials.user_id,
         true,
         todayDate
       );
-    } else { //Οταν ο χρηστης παιρνει πισω το like
-      indexProduct.indexProduct.likes = indexProduct.indexProduct.likes - 1;
       updateLikes(
         indexProduct.indexProduct.likes,
-        indexProduct.indexProduct.offer_id
+        indexProduct.indexProduct.offer_id,
+        userCredentials.user_id
       );
+    } else {
+      //Οταν ο χρηστης παιρνει πισω το like
+      indexProduct.indexProduct.likes = indexProduct.indexProduct.likes - 1;
+
       deleteLikedProduct(
+        indexProduct.indexProduct.offer_id,
+        userCredentials.user_id
+      );
+      updateLikes(
+        indexProduct.indexProduct.likes,
         indexProduct.indexProduct.offer_id,
         userCredentials.user_id
       );
@@ -68,24 +72,27 @@ const ReactionOffer = (indexProduct) => {
     ) {
       indexProduct.indexProduct.dislikes =
         indexProduct.indexProduct.dislikes + 1;
-      updateDislikes(
-        indexProduct.indexProduct.dislikes,
-        indexProduct.indexProduct.offer_id
-      );
       addReactionProduct(
         indexProduct.indexProduct.offer_id,
         userCredentials.user_id,
         false,
         todayDate
       );
-    } else { //Οταν ο χρηστης παιρνει πισω το dislike
-      indexProduct.indexProduct.dislikes =
-        indexProduct.indexProduct.dislikes - 1;
       updateDislikes(
         indexProduct.indexProduct.dislikes,
-        indexProduct.indexProduct.offer_id
+        indexProduct.indexProduct.offer_id,
+        userCredentials.user_id
       );
+    } else {
+      //Οταν ο χρηστης παιρνει πισω το dislike
+      indexProduct.indexProduct.dislikes =
+        indexProduct.indexProduct.dislikes - 1;
       deleteLikedProduct(
+        indexProduct.indexProduct.offer_id,
+        userCredentials.user_id
+      );
+      updateDislikes(
+        indexProduct.indexProduct.dislikes,
         indexProduct.indexProduct.offer_id,
         userCredentials.user_id
       );
@@ -119,11 +126,11 @@ const ReactionOffer = (indexProduct) => {
   };
 
   //Update Likes
-  const updateLikes = async (val1, val2) => {
+  const updateLikes = async (val1, val2, val3) => {
     try {
-      const body = { val1, val2 };
+      const body = { val1, val2, val3 };
       await fetch(
-        `http://localhost:5000/offerlike?updatedlikes=${val1}&offerid=${val2}`,
+        `http://localhost:5000/offerlike?updatedlikes=${val1}&offerid=${val2}&userid=${val3}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -136,11 +143,11 @@ const ReactionOffer = (indexProduct) => {
   };
 
   //Upadate Dislikes
-  const updateDislikes = async (val1, val2) => {
+  const updateDislikes = async (val1, val2, val3) => {
     try {
-      const body = { val1, val2 };
+      const body = { val1, val2, val3 };
       await fetch(
-        `http://localhost:5000/offerdislike?updateddislikes=${val1}&offerid=${val2}`,
+        `http://localhost:5000/offerdislike?updateddislikes=${val1}&offerid=${val2}&userid${val3}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -207,19 +214,11 @@ const ReactionOffer = (indexProduct) => {
 
   return (
     <Fragment>
-      {checked === true ? (
-        <Checkbox
-          checked={checked}
-          onChange={handlerCheckbox}
-          onClick={() => updateStock(indexProduct.indexProduct.offer_id)}
-        />
-      ) : (
-        <Checkbox
-          checked={checked}
-          onChange={handlerCheckbox}
-          onClick={() => updateStock(indexProduct.indexProduct.offer_id)}
-        />
-      )}
+      <Checkbox
+        checked={checked}
+        onChange={handlerCheckbox}
+        onClick={() => updateStock(indexProduct.indexProduct.offer_id)}
+      />
 
       {checked === false ? ( //Δεν μπορεις να κανεις reaction
         <IconButton disabled={true}>

@@ -44,20 +44,52 @@ const SubmitOffer = (store) => {
     userId: userCredentials.user_id,
     date: null,
   });
-  const [products, setProducts] = useState([]);
+
   const [errorMessage, setErrorMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
 
+  const [products, setProducts] = useState([]);
+
+  const [categories, setCategories] = useState([]);
+  const [returnCategory, setReturnCategory] = useState(null);
+
+  const [subcategories, setSubcategories] = useState([]);
+  const [returnSubategory, setReturnSubcategory] = useState(null);
+
   // <---------------------- Fetch ---------------------->
 
-  //Get products//
-  const getProducts = async () => {
+  //Get categories//
+  const getCategories = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/getCategories");
+      const getCategories = await response.json();
+      setCategories(getCategories);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  //Get subcategories//
+  const getSubcategories = async (category) => {
     try {
       const response = await fetch(
-        "http://localhost:5000/productsForSubmitOffer"
+        `http://localhost:5000/getSubcategories?parentCategory=${category}`
       );
-      const getOfferProducts = await response.json();
-      setProducts(getOfferProducts);
+      const getSubcategories = await response.json();
+      setSubcategories(getSubcategories);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  //Get products//
+  const getProducts = async (subcategory) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/getProductsFromSubcategory?parentSubcategory=${subcategory}`
+      );
+      const getProducts = await response.json();
+      setProducts(getProducts);
     } catch (err) {
       console.error(err.message);
     }
@@ -97,7 +129,7 @@ const SubmitOffer = (store) => {
               "Επιτυχής καταχώρηση προσφοράς. Συγχαρητήρια πήρες 70 πόντους!"
             );
           } else if (
-            setScore.isGoodDealAverage === true &&
+            getScore.isGoodDealAverage === true &&
             getScore.isGoodDeal === false
           ) {
             setSuccessMessage(
@@ -117,6 +149,7 @@ const SubmitOffer = (store) => {
           }
         } else if (setScore.status === 404) {
           setErrorMessage("Δεν υπάρχει ιστορικό τίμων για αυτό το προιον!");
+          setSuccessMessage("Επιτυχής καταχώρηση προσφοράς!");
         }
       }
     } catch (err) {
@@ -147,8 +180,18 @@ const SubmitOffer = (store) => {
 
   //useEffects//
   useEffect(() => {
-    getProducts();
+    getCategories();
   }, []);
+
+  //useEffects//
+  useEffect(() => {
+    getSubcategories(returnCategory);
+  }, [returnCategory]);
+
+  //useEffects//
+  useEffect(() => {
+    getProducts(returnSubategory);
+  }, [returnSubategory]);
 
   //useEffects//
   useEffect(() => {
@@ -174,7 +217,45 @@ const SubmitOffer = (store) => {
         <DialogTitle align="center">Υποβολή Προσφοράς</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            <Box sx={{ minWidth: 120 }}>
+            <Box sx={{ minWidth: 120, m: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel id="Category">Κατηγορία</InputLabel>
+                <Select
+                  labelId="Category"
+                  id="Category"
+                  value={categories.category_id}
+                  label="Κατηγορία"
+                  onChange={(e) => setReturnCategory(e.target.value)}
+                >
+                  {categories &&
+                    categories.map((categoryIndex) => (
+                      <MenuItem value={categoryIndex.category_id}>
+                        {categoryIndex.category_name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ minWidth: 120, m: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel id="Subcategory">Υποκατηγορία</InputLabel>
+                <Select
+                  labelId="Subcategory"
+                  id="Subcategory"
+                  value={subcategories.subcategory_id}
+                  label="Υποκατηγορία"
+                  onChange={(e) => setReturnSubcategory(e.target.value)}
+                >
+                  {subcategories &&
+                    subcategories.map((subcategoryIndex) => (
+                      <MenuItem value={subcategoryIndex.subcategory_id}>
+                        {subcategoryIndex.subcategory_name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ minWidth: 120, m: 2 }}>
               <FormControl
                 fullWidth
                 InputLabelProps={{
@@ -207,11 +288,11 @@ const SubmitOffer = (store) => {
               </FormControl>
             </Box>
             <TextField
+              sx={{ maxWidth: 500, m: 2 }}
               margin="dense"
               id="initialPrice"
               label="Αρχική τιμή"
               type="text"
-              fullWidth
               variant="outlined"
               value={submitOffer.initialPrice}
               InputLabelProps={{
@@ -225,11 +306,11 @@ const SubmitOffer = (store) => {
               }
             />
             <TextField
+              sx={{ maxWidth: 500, m: 2 }}
               margin="dense"
               id="newPrice"
               label="Tιμή Προσφοράς"
               type="text"
-              fullWidth
               variant="outlined"
               value={submitOffer.newPrice}
               InputLabelProps={{

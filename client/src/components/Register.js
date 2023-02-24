@@ -237,7 +237,7 @@ const Register = () => {
                   </Grid>
                 </Box>
               </Box>
-              <Grid>
+              <Grid sx={{mt:2}}>
                 {errorMessage && (
                   <Alert severity="error"> {errorMessage} </Alert>
                 )}
@@ -245,7 +245,7 @@ const Register = () => {
                   <Alert severity="success">{successMessage}</Alert>
                 )}
               </Grid>
-              <Copyright sx={{ mt: 9, mb: 4 }} />
+              <Copyright sx={{ mt: 4, mb: 4 }} />
             </Container>
           </ThemeProvider>
         </div>

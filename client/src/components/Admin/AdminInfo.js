@@ -28,49 +28,40 @@ const AdminInfo = () => {
 
   //<--------------------------Fecth-------------------------->
 
-  //Update username//
-  const updateUsername = async (userId, newUsername, password) => {
-    const body = { userId, newUsername, password };
-    const updatedUsername = await fetch(
-      "http://localhost:5000/updateUsername",
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
-    if (updatedUsername.status === 404) {
-      setSuccessMessage(false);
-      setErrorMessage("Λάθος τωρινός κωδικός πρόσβασης!");
-    } else {
-      setErrorMessage(false);
-      setSuccessMessage("Το όνομα χρήστη άλλαξε!");
-      initialNewUserCreds();
-    }
-  };
-
-  //Update password//
-  const updatePassword = async (
+  //Update username AND Password//
+  const updateUsernameAndPassword = async (
     userId,
+    newUsername,
+    password,
     newPassword,
-    newConfPassword,
-    password
+    newConfPassword
   ) => {
-    const body = { userId, newPassword, newConfPassword, password };
-    const updatedPassword = await fetch(
-      "http://localhost:5000/updateUserPassword",
+    const body = {
+      userId,
+      newUsername,
+      password,
+      newPassword,
+      newConfPassword,
+    };
+    const updatedUsernameAndPassword = await fetch(
+      "http://localhost:5000/updateUsernameAndPassword",
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }
     );
-    if (updatedPassword.status === 404) {
+    if (updatedUsernameAndPassword.status === 404) {
       setSuccessMessage(false);
       setErrorMessage("Λάθος τωρινός κωδικός πρόσβασης!");
+    } else if (updatedUsernameAndPassword.status === 403) {
+      const updateCreds = await updatedUsernameAndPassword.json();
+      setSuccessMessage(false);
+      setErrorMessage(updateCreds.message);
     } else {
+      const updateCreds = await updatedUsernameAndPassword.json();
       setErrorMessage(false);
-      setSuccessMessage("Ο κωδικός πρόσβασης άλλαξε!");
+      setSuccessMessage(updateCreds.message);
       initialNewUserCreds();
     }
   };
@@ -101,24 +92,14 @@ const AdminInfo = () => {
       } else if (newUserCreds.password === "") {
         setSuccessMessage(false);
         setErrorMessage("Το πεδίο τωρινού κωδικού είναι κενό!");
-      } else if (newUserCreds.password !== "") {
-        if (newUserCreds.newUsername === "") {
-          updatePassword(
-            userCredentials.user_id,
-            newUserCreds.newPassword,
-            newUserCreds.newConfPassword,
-            newUserCreds.password
-          );
-        } else if (
-          newUserCreds.newPassword === "" ||
-          newUserCreds.newConfPassword === ""
-        ) {
-          updateUsername(
-            userCredentials.user_id,
-            newUserCreds.newUsername,
-            newUserCreds.password
-          );
-        }
+      } else {
+        updateUsernameAndPassword(
+          userCredentials.user_id,
+          newUserCreds.newUsername,
+          newUserCreds.password,
+          newUserCreds.newPassword,
+          newUserCreds.newConfPassword
+        );
       }
     } catch (err) {
       setErrorMessage("Κάτι πήγε στραβά!");
